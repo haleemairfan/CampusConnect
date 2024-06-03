@@ -62,10 +62,11 @@ They then respectively branch out to their individual tables like so:
 <br>
 
 ## **Installation and Running**
-Our project is still in progress, as such a completed system is not fully available to run. <br>
-However, we currently have both the application code (React Native) and database code (PostgreSQL) up on our Github. 
-Please download the files and take a look.
-
+we used the expo app template to create the frontend of our app using react native.
+you can run our app on an android emulator.
+Currently the login page is not completed and has a placeholder page.
+The account creation page is completed however, we were unable to figure out why the frontend is not able to connect to the backend and send the necessary data
+The backend is located in the node-mySQL folder. we used mySQL as we havent fully figured out how to integrate postgreSQL with node.js. To run our backend server, use the command npm start. Our mySQL database is locally created via PHPMyAdmin.
 
 <br>
 
