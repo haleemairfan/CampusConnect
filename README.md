@@ -36,11 +36,19 @@ Database: **PostgreSQL** (database management system that is ACID compliant)
 <br>
 
 ### Section 4: System Architecture Diagram
+![System Architecture Diagram](https://github.com/haleemairfan/HardCoders/assets/156863812/1e8a68c3-85a3-4231-ae5a-749dcc90ed49)
+*Figure 1: Campus Connect System Architecture Diagram*
+<br>
+
+Above details how the components of the tech stack (highlighted in Section 3) interact with each other on a system-level to deliver the client-side request
+based on their interaction with the user interface of Campus Connect.
+<br>
+
 <br>
 
 ### Section 5: Entity-Relationship Diagram
 ![Entity-Relationship Diagram (Orbital) (1)](https://github.com/haleemairfan/HardCoders/assets/156863812/bb5ef41c-19e5-493d-afff-a75b2e075ecf)
-*Figure 1: Campus Connect Database Entity-Relationship Diagram*
+*Figure 2: Campus Connect Database Entity-Relationship Diagram*
 <br>
 
 Above details how the different entities in the database are associated with each other by means of the Crow's feet notation. 
@@ -50,6 +58,7 @@ They then respectively branch out to their individual tables like so:
 - One-to-Many Relationship: **Post Table**, **Comment Table**, **Reported Posts Table**, **Reported Comments Table** (as each user can have multiple posts / comments
   which may or may not be reported)
 
+<br>
 
 ## **Installation and Running**
 Our project is still in progress, as such a completed system is not fully available to run. <br>
