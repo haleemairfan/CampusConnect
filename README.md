@@ -11,6 +11,8 @@ personal growth. Ultimately, our goal is to empower students to overcome obstacl
 vibrant and inclusive community.
 <br>
 
+<br>
+
 ### Section 2: Campus Connect Features:
 Our final application will consist of the following core and extension features:
 1. Account Creation, Deletion and Updating (Core)
@@ -42,14 +44,21 @@ Database: **PostgreSQL** (database management system that is ACID compliant)
 <br>
 
 Above details how the different entities in the database are associated with each other by means of the Crow's feet notation. 
-Most of the tables branch out from the Users table, with one user having multiple of other entities (e.g. multiple posts and comments).
+All tables branch out from the Users Table (as that is the first table the user information is inserted into when an account is created). 
+They then respectively branch out to their individual tables like so:
+- One-to-One Relationship: **Moderator Table** and **Configuration Table** (as each user can only have one moderator status and display configuration)
+- One-to-Many Relationship: **Post Table**, **Comment Table**, **Reported Posts Table**, **Reported Comments Table** (as each user can have multiple posts / comments
+  which may or may not be reported)
 
 
 ## **Installation and Running**
-Our project is still in progress, as such a completed system is still not completed. <br>
+Our project is still in progress, as such a completed system is not fully available to run. <br>
 However, we currently have both the application code (React Native) and database code (PostgreSQL) up on our Github. 
 Please download the files and take a look.
 
 
+<br>
+
 **Orbital Team 6211: Halemma Irfan and Yeo Jaye Lin**
+<br>
 Last Updated: 03/06/2024
