@@ -1,29 +1,34 @@
 import React, { useState } from 'react';
-import { TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import axios from 'axios';
+import { TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 
 export default function accountcreation() {
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
 
-function handleSignUp() {
-  const data = {
-    Name: name,
-    Email: email,
-    Password: password
-  };
+  async function handleSignUp() {
+    try {
+        await fetch('http://172.31.17.153:5001/accountcreation', {
+          method: 'POST',
+          body: JSON.stringify({
+                username,
+                email,
+                dateOfBirth,
+                password,
+        }),
+      });
 
-  axios
-    .post('http://127.0.0.1:5001/accountcreation', data)
-    .then(res => console.log(res.data))
-    .catch(e => console.log(e));
-
-}
+      Alert.alert('Success', 'Account created successfully');
+    } catch (error) {
+      console.error('Sign up error:', error);
+      Alert.alert('Error', 'Failed to create account. Please try again later.');
+    }
+  }
   
   
   return (
@@ -41,8 +46,8 @@ function handleSignUp() {
             <TextInput
                 style={styles.input}
                 placeholder="Enter your name"
-                value={name}
-                onChangeText={setName}
+                value={username}
+                onChangeText={setUsername}
             />
             <ThemedText 
                 style={styles.text}
@@ -60,15 +65,28 @@ function handleSignUp() {
                 style={styles.text}
                 lightColor = '#2A2B2E'
                 darkColor= '#F6F0ED'>
+                Date Of Birth:
+            </ThemedText>
+            <TextInput
+                style={styles.input}
+                placeholder="Enter your date of birth"
+                value={dateOfBirth}
+                onChangeText={setDateOfBirth}
+            />
+            <ThemedText 
+                style={styles.text}
+                lightColor = '#2A2B2E'
+                darkColor= '#F6F0ED'>
                 Password:
             </ThemedText>
-        <TextInput
-            style={styles.input}
-            placeholder="Enter your password"
-            value={password}
-            secureTextEntry
-            onChangeText={setPassword}
-        />
+            <TextInput
+                style={styles.input}
+                placeholder="Enter your password"
+                value={password}
+                secureTextEntry
+                onChangeText={setPassword}
+            />
+            
         <TouchableOpacity
           style = {styles.button}
           onPress = {handleSignUp}>

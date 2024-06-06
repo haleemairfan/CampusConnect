@@ -1,45 +1,33 @@
 const express = require('express');
-const mysql = require('mysql');
-const dotenv = require('dotenv');
-const cors = require('cors');
+const { createClient } =  require('@supabase/supabase-js');
+const bodyparser = require('body-parser');
 
-dotenv.config({ path: './.env' })
 
 const app = express();
-const db = mysql.createConnection({
-    host: process.env.DATABASE_HOST,
-    port: process.env.DATABASE_PORT,
-    user: process.env.DATABASE_USER,
-    password: process.env.DATABASE_PASSWORD,
-    database: process.env.DATABASE
-
-
-})
-
-db.connect((error) => {
-    if (error) {
-        console.log(error)
-    } else {
-        console.log("My SQL connected...")
-    }
-})
+const supabase = createClient('https://ixcwmtjytstmzyanpqro.supabase.co',
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4Y3dtdGp5dHN0bXp5YW5wcXJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTc1MzU2MjAsImV4cCI6MjAzMzExMTYyMH0.XCJzoWA5nJX95NRykhi6BDs771H0x-TAp6zVk_jeeRY')
 app.get("/", (req, res) => {
     res.send("<h1>HomePage</h1>")
 })
 
 
-app.use(express.json());
-app.use(cors());
+app.use(bodyparser.json());
 
-app.post('/accountcreation', async(req, res) => {
-    const {Name, Email, Password} = req.body;
-    db.query('INSERT INTO users SET ?', {Name: Name, Email: Email, Password: Password}, (error, result) => {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log(result);
-        }
-    })
+app.post('/accountcreation', async (req, res) => {
+    const { Username, Email, Date_Of_Birth, Password } = req.body;
+    const { error } = await supabase.from('users')
+                             .insert({ username: Username, 
+                                       email: Email,  
+                                       date_of_birth: Date_Of_Birth,
+                                       password_hash: Password
+                                    })
+
+    if (error) {
+        res.status(500).send(`Error creating user: ${error.message}`);
+    } else {
+        res.status(201).send(`User added`);
+    }
+
 })
 
 
