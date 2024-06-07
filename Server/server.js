@@ -9,6 +9,10 @@ require('dotenv').config();
 
 const express = require("express");
 const db = require("./db");
+<<<<<<< HEAD
+=======
+const morgan = require("morgan");
+>>>>>>> be47cc69a08766f465fce3e21e12bc01f7cb55ca
 const app = express();   // Create an instance of express
 
 
@@ -25,6 +29,7 @@ app.use(express.json());
 // so there is no need to indicate next
 // express.json() provides the body as a convenient standard javascript object
 
+<<<<<<< HEAD
 // account creation 
 app.post("/api/v1/createAccount", async (req, res) => {
     console.log(req.body);
@@ -68,6 +73,8 @@ app.post("/api/v1/logIn", async (req, res) => {
     });
 
 
+=======
+>>>>>>> be47cc69a08766f465fce3e21e12bc01f7cb55ca
 // Get all posts
 app.get(`/api/v1/getPost`, async (req, res) => {
 
