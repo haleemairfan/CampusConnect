@@ -8,17 +8,21 @@ import { ThemedView } from '@/components/ThemedView';
 export default function accountcreation() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [date_of_birth, setDateOfBirth] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleSignUp() {
     try {
-        await fetch('http://172.31.17.153:5001/accountcreation', {
+        //replace with your machine IP address
+        await fetch('http://172.31.17.153:3000/api/v1/createAccount', {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },  
           body: JSON.stringify({
                 username,
                 email,
-                dateOfBirth,
+                date_of_birth,
                 password,
         }),
       });
@@ -70,7 +74,7 @@ export default function accountcreation() {
             <TextInput
                 style={styles.input}
                 placeholder="Enter your date of birth"
-                value={dateOfBirth}
+                value={date_of_birth}
                 onChangeText={setDateOfBirth}
             />
             <ThemedText 
