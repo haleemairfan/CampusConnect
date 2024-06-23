@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 
+
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
@@ -12,20 +13,31 @@ export default function login() {
     const [password, setPassword] = useState('');
 
     async function handleSignUp() {
-        //replace with your machine IP address
-        await fetch('http://172.31.17.153:3000/api/v1/logIn', {
-            method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },  
-              body: JSON.stringify({
-                    identification,
-                    password
-            }),
-          });
-       
+        try {
+            //replace with your machine IP address
+            const results = await fetch('http://172.31.17.153:3000/api/v1/logIn', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },  
+                body: JSON.stringify({
+                        identification,
+                        password
+                }),
+            })
+            const data = await results.json();
+
+            if (!results.ok) {
+                throw new Error(data.message);
+            }
+
+            
+        } catch (error) {
+            console.error('Sign up error:', error);
+            Alert.alert('Error', 'Failed to sign in. Please try again later.');
+      
+        }
     }
-    
   
   
     return (

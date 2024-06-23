@@ -8,16 +8,92 @@ require('dotenv').config();
 // variables to get the port up and running automatically. Use dotenv package to do so.
 
 const express = require("express");
-const db = require("./db");
-<<<<<<< HEAD
-=======
-const morgan = require("morgan");
->>>>>>> be47cc69a08766f465fce3e21e12bc01f7cb55ca
 const app = express();   // Create an instance of express
 
+const { createClient } = require('@supabase/supabase-js');
+
+const bcrypt = require('bcrypt'); 
+
+const supabaseUrl = process.env.SUPABASE_URL;
+
+const supabaseKey = process.env.SUPABASE_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Middleware (Order defined for middleware matters, express leads from the top down)
 app.use(express.json());
+
+app.post("/api/v1/createAccount", async (req, res) => {
+    console.log(req.body);
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        const results = await supabase.from('users')
+                                       .insert([
+                                                { username: req.body.username, email: req.body.email, date_of_birth: req.body.date_of_birth, password_hash: hashedPassword  },
+                                               ])
+                                       .select()
+
+        console.log(results);
+        return res.status(200).json({
+            status: "success",
+            data: results.data[0]
+        });
+    } catch (err) {
+        return res.status(400).json({
+            status: "error",
+            message: "Username is already in use"
+        });}
+});
+
+
+    app.post("/api/v1/logIn", async (req, res) => {
+        console.log(req.body);
+        const { identification, password } = req.body;
+    
+        try {
+            const { data: users, error } = await supabase
+                .from('users')
+                .select('*')
+                .or(`username.eq.${identification},email.eq.${identification}`);
+    
+            if (error) {
+                throw error;
+            }
+    
+            if (!users || users.length === 0) {
+                return res.status(400).json({
+                    status: "error",
+                    message: "Invalid username/email"
+                });
+            }
+    
+            const user = users[0];
+            
+            
+            const isValidPassword = await bcrypt.compare(password, user.password_hash);
+            console.log(isValidPassword);
+    
+            if (!isValidPassword) {
+                return res.status(400).json({
+                    status: "error",
+                    message: "Invalid password"
+                });
+                
+            }
+    
+            return res.status(200).json({
+                status: "success",
+                data: {
+                    user: user,
+                }
+            });
+    
+        } catch (err) {
+            console.error("Caught an error: ", err);
+        }
+    });
+    
 
 // next() function tells us to send to the next middleware or route handler
 // middleware can be used to send response back to user, like so:
@@ -29,13 +105,17 @@ app.use(express.json());
 // so there is no need to indicate next
 // express.json() provides the body as a convenient standard javascript object
 
-<<<<<<< HEAD
+
+
+
+
+/** 
 // account creation 
 app.post("/api/v1/createAccount", async (req, res) => {
     console.log(req.body);
     try {
         const results = await db.query(
-            "INSERT INTO users (user_uuid, username, email, date_of_birth, password_hash, date_created ) VALUES (uuid_generate_v4(), $1, $2, $3, $4, NOW()) RETURNING *",
+            "INSERT INTO users (user_uuid, username, email, date_of_birth, password_hash, date_created) VALUES (uuid_generate_v4(), $1, $2, $3, $4, NOW()) RETURNING *",
         [req.body.username, req.body.email, req.body.date_of_birth, req.body.password]);
         console.log(results);
         res.status(201).json({
@@ -67,14 +147,13 @@ app.post("/api/v1/logIn", async (req, res) => {
                 posts: results.rows[0],
             }
     });
+
     } catch (err) {
         console.log(err);
     }
     });
 
 
-=======
->>>>>>> be47cc69a08766f465fce3e21e12bc01f7cb55ca
 // Get all posts
 app.get(`/api/v1/getPost`, async (req, res) => {
 
@@ -174,7 +253,7 @@ app.delete("/api/v1/getPost/:post_uuid", async (req, res) => {
 // For 204, postman automatically removes the json above but note we are
 // sending this data
 
-
+*/
 const port = process.env.PORT || 3000;   
 // Storing the value of port to the environment variable defined in env, if env not available, 
 // then listen on port 3000

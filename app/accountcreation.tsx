@@ -13,21 +13,28 @@ export default function accountcreation() {
 
   async function handleSignUp() {
     try {
-        //replace with your machine IP address
-        await fetch('http://172.31.17.153:3000/api/v1/createAccount', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },  
-          body: JSON.stringify({
-                username,
-                email,
-                date_of_birth,
-                password,
+      //replace with your machine IP address
+      const results = await fetch('http://172.31.17.153:3000/api/v1/createAccount', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },  
+        body: JSON.stringify({
+              username,
+              email,
+              date_of_birth,
+              password,
         }),
       });
+      const data = await results.json();
 
-      Alert.alert('Success', 'Account created successfully');
+      if (!results.ok) {
+          throw new Error(data.message);
+      }
+
+      Alert.alert('Success', 'Account created successfully', 
+                 [{text: 'Continue', onPress: () => console.log('pressed')}]);
+
     } catch (error) {
       console.error('Sign up error:', error);
       Alert.alert('Error', 'Failed to create account. Please try again later.');

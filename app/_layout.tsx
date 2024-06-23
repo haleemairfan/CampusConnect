@@ -34,8 +34,10 @@ export default function RootLayout() {
       lightColor = "#F6F0ED"
       darkColor= '#2A2B2E'
     >
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false
+        }}>
       </Stack>
     </ThemedView>
   );
