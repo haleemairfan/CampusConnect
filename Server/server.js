@@ -43,57 +43,141 @@ app.post("/api/v1/createAccount", async (req, res) => {
         return res.status(400).json({
             status: "error",
             message: "Username is already in use"
-        });}
+        });
+    }
 });
 
 
-    app.post("/api/v1/logIn", async (req, res) => {
-        console.log(req.body);
-        const { identification, password } = req.body;
+app.post("/api/v1/logIn", async (req, res) => {
+    console.log(req.body);
+    const { identification, password } = req.body;
     
-        try {
-            const { data: users, error } = await supabase
-                .from('users')
-                .select('*')
-                .or(`username.eq.${identification},email.eq.${identification}`);
+    try {
+        const { data: users, error } = await supabase.from('users')
+                                                     .select('*')
+                                                     .or(`username.eq.${identification},email.eq.${identification}`);
     
-            if (error) {
-                throw error;
-            }
-    
-            if (!users || users.length === 0) {
-                return res.status(400).json({
-                    status: "error",
-                    message: "Invalid username/email"
-                });
-            }
-    
-            const user = users[0];
-            
-            
-            const isValidPassword = await bcrypt.compare(password, user.password_hash);
-            console.log(isValidPassword);
-    
-            if (!isValidPassword) {
-                return res.status(400).json({
-                    status: "error",
-                    message: "Invalid password"
-                });
-                
-            }
-    
-            return res.status(200).json({
-                status: "success",
-                data: {
-                    user: user,
-                }
-            });
-    
-        } catch (err) {
-            console.error("Caught an error: ", err);
+        if (error) {
+            throw error;
         }
-    });
     
+        if (!users || users.length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid username/email"
+            });
+        }
+    
+        const user = users[0];
+            
+            
+        const isValidPassword = await bcrypt.compare(password, user.password_hash);
+        console.log(isValidPassword);
+    
+        if (!isValidPassword) {
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid password"
+            });
+                
+        }
+    
+        return res.status(200).json({
+            status: "success",
+            data: {
+                user: user.user_uuid
+            }
+        });
+    
+    } catch (err) {
+        console.error("Caught an error: ", err);
+    }
+});
+
+app.post("/api/v1/getUserData", async(req, res) => {
+    console.log(req.body);
+    const id = req.body.id;
+    try {
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('user_uuid', id);        
+        
+        const user = users[0];
+
+        return res.status(200).json({
+            status: "success",
+            data: {
+                username: user.username,
+                password: user.password_hash,
+                date_of_birth: user.date_of_birth
+            }
+        })
+    } catch (err) {
+        return res.status(400).json({
+            status: "error",
+            message: "User not found"
+        });
+    }
+ });
+
+ app.post("/api/v1/insertMajor", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const major = req.body.selectedMajor;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                        .insert([
+                                                { user_uuid: id, major: major },
+                                               ])
+                                        .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+
+app.post("/api/v1/insertUniversity", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const university = req.body.selectedUniversity;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                            .update({university: university})
+                                            .eq('user_uuid', id)
+
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+/** 
 
 // next() function tells us to send to the next middleware or route handler
 // middleware can be used to send response back to user, like so:
@@ -109,66 +193,6 @@ app.post("/api/v1/createAccount", async (req, res) => {
 
 
 
-/** 
-// account creation 
-app.post("/api/v1/createAccount", async (req, res) => {
-    console.log(req.body);
-    try {
-        const results = await db.query(
-            "INSERT INTO users (user_uuid, username, email, date_of_birth, password_hash, date_created) VALUES (uuid_generate_v4(), $1, $2, $3, $4, NOW()) RETURNING *",
-        [req.body.username, req.body.email, req.body.date_of_birth, req.body.password]);
-        console.log(results);
-        res.status(201).json({
-            status: "success",
-            data: {
-                posts: results.rows[0],
-            }
-    });
-    } catch (err) {
-        console.log(err);
-    }
-    });
-
-
-// log in
-
-app.post("/api/v1/logIn", async (req, res) => {
-    console.log(req.body);
-    try {
-        const results = await db.query(
-            "SELECT * FROM users WHERE (username = $1 OR email = $1) AND password_hash = $2",
-        [req.body.identification, req.body.password]);
-
-        console.log(results);
-
-        res.status(201).json({
-            status: "success",
-            data: {
-                posts: results.rows[0],
-            }
-    });
-
-    } catch (err) {
-        console.log(err);
-    }
-    });
-
-
-// Get all posts
-app.get(`/api/v1/getPost`, async (req, res) => {
-
-    try {const results = await db.query("SELECT * FROM posts;");
-        console.log(results);
-            res.status(200).json({
-                status: "success",
-                results: results.rows.length,
-                data: {posts: results.rows,
-                },
-        });
-    } catch (err) {
-        console.log(err);
-    }
-});
 // first parameter is the url in the form: http://localhost:{port_num}/{name of get function}
 // second parameter is the callback function:
 // request is stored in the first variable and response is stored in the second variable
