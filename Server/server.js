@@ -45,6 +45,8 @@ app.post("/api/v1/createAccount", async (req, res) => {
             message: "Username is already in use"
         });
     }
+        });
+    }
 });
 
 

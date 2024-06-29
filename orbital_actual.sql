@@ -83,8 +83,9 @@ CREATE TABLE reported_posts (
     rep_post_id BIGSERIAL NOT NULL PRIMARY KEY,
     date_reported DATE NOT NULL,
     time_reported TIME NOT NULL,
-    user_uuid UUID REFERENCES users(user_uuid),
-    post_uuid UUID REFERENCES posts(post_uuid)
+    reported_by_uuid UUID REFERENCES users(user_uuid),
+    reported_against_uuid UUID REFERENCES users(user_uuid),
+    post_reported_uuid UUID REFERENCES posts(post_uuid)
 );
 
 ---- REPORTED POSTS Test Case:
@@ -102,8 +103,9 @@ CREATE TABLE reported_comments (
     rep_comment_id BIGSERIAL NOT NULL PRIMARY KEY,
     date_reported DATE NOT NULL,
     time_reported TIME NOT NULL,
-    user_uuid UUID REFERENCES users(user_uuid),
-    comment_uuid UUID REFERENCES comments(comment_uuid)
+    reported_by_uuid UUID REFERENCES users(user_uuid),
+    reported_against_uuid UUID REFERENCES users(user_uuid),
+    reported_comment_uuid UUID REFERENCES comments(comment_uuid)
 );
 
 ---- REPORTED COMMENTS Test Case:
