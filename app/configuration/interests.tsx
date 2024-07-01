@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, Alert, View } from 'react-native';
+import { router } from 'expo-router';
+import { useAppContext } from '../context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
@@ -11,6 +13,8 @@ const interests = [
 ];
 
 export default function SelectInterests() {
+  const { getGlobalUserId } = useAppContext();
+  const id = getGlobalUserId();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
   const toggleInterest = (interest: string) => {
@@ -23,14 +27,39 @@ export default function SelectInterests() {
     }
   };
 
-  const handleContinue = () => {
+
+
+  async function insertInterests() {
     if (selectedInterests.length === 0) {
       Alert.alert('No Interests Selected', 'Please select at least one interest.');
-    } else {
-      // Handle continue action
-      console.log('Selected Interests:', selectedInterests);
     }
-  };
+
+    try {
+    const results = await fetch("http://172.31.17.153:3000/api/v1/insertInterests", {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+        id,
+        selectedInterests
+        }),
+    });
+    
+    const data = await results.json();
+
+    if (!results.ok) {
+        throw new Error(data.message);
+    }
+    router.push({ pathname: './campusaccommodation' })
+    } catch (error) {
+    console.error('Invalid Interests selected:', error);
+    Alert.alert('Error', 'Invalid Interests Selected',
+        [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
+
+    }
+}
+
 
   const renderInterest = ({ item }: { item: string }) => (
     <TouchableOpacity
@@ -57,7 +86,7 @@ export default function SelectInterests() {
           contentContainerStyle={styles.interestsContainer}
         />
         {selectedInterests.length > 0 && (
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+          <TouchableOpacity style={styles.continueButton} onPress={insertInterests}>
             <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
               Continue
             </ThemedText>

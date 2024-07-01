@@ -1,11 +1,12 @@
 import { Slot, Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
+import { AppProvider } from './context';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -19,6 +20,7 @@ const RootLayout = () => {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+
     }
   }, [loaded]);
 
@@ -28,13 +30,16 @@ const RootLayout = () => {
 
 
     return (
-        <Stack>
-            <Stack.Screen name = "index" options = {{ headerShown: false}} />
-            <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
-            <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
-            <Stack.Screen name = "(messages)" options = {{ headerShown: false}} />
-            <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />      
-        </Stack>
+      <AppProvider>
+          <Stack>
+              <Stack.Screen name = "index" options = {{ headerShown: false}} />
+              <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
+              <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
+              <Stack.Screen name = "(messages)" options = {{ headerShown: false}} />
+              <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />    
+          </Stack>  
+        </AppProvider>
+
     )
 }
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TextInput, StyleSheet, TouchableOpacity, Alert, Pressable, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
+import { useAppContext } from './context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
@@ -12,7 +13,7 @@ export default function AccountCreation() {
   const [showPicker, setShowPicker] = useState(false);
   const [date, setDate] = useState(new Date());
   const [password, setPassword] = useState('');
-
+  const { setGlobalUserId } = useAppContext();
 
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
@@ -50,9 +51,10 @@ export default function AccountCreation() {
         throw new Error(data.message);
       }
       const id = data.data.user_uuid;
+      setGlobalUserId(id);
 
       Alert.alert('Success', 'Account created successfully',
-        [{ text: 'Continue', onPress: () => router.push({ pathname: './configuration/major', params: { id } }) }]);
+        [{ text: 'Continue', onPress: () => router.push({ pathname: './configuration/major'}) }]);
     } catch (error) {
       console.error('Sign up error:', error);
       Alert.alert('Error', 'Failed to create account',

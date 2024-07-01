@@ -6,91 +6,88 @@ import { ThemedView } from '@/components/ThemedView';
 const years = ['1', '2', '3', '4'];
 
 export default function SelectYear() {
-  const [query, setQuery] = useState('');
-  const [filteredYears, setFilteredYears] = useState(years);
-  const [selectedYear, setSelectedYear] = useState('');
-  const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const handleSearch = (text: string) => {
-    setQuery(text);
-    const filtered = years.filter((year) =>
-      year.includes(text)
-    );
-    setFilteredYears(filtered);
-    setDropdownVisible(true);
-  };
+    const [query, setQuery] = useState('');
+    const [filteredYears, setFilteredYears] = useState(years);
+    const [selectedYear, setSelectedYear] = useState('');
+    const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const handleSelectYear = (year: string) => {
-    setSelectedYear(year);
-    setQuery(year);
-    setFilteredYears([]);
-    setDropdownVisible(false);
-  };
+    const handleSearch = (text: string) => {
+        setQuery(text);
+        const filtered = years.filter((year) =>
+        year.includes(text)
+        );
+        setFilteredYears(filtered);
+        setDropdownVisible(true);
+    };
 
-  const handleDismissKeyboard = () => {
-    setDropdownVisible(false);
-    Keyboard.dismiss();
-  };
+    const handleSelectYear = (year: string) => {
+        setSelectedYear(year);
+        setQuery(year);
+        setFilteredYears([]);
+        setDropdownVisible(false);
+    };
 
-  const handleContinue = () => {
-    // Logic to handle continue action
-    console.log('Continue button pressed');
-  };
+    const handleDismissKeyboard = () => {
+        setDropdownVisible(false);
+        Keyboard.dismiss();
+    };
 
-  return (
-    <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
-      <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#2A2B2E">
-        <ThemedText style={styles.welcomeText} lightColor="#2A2B2E" darkColor="#F6F0ED">
-          Welcome, please select your year of study
-        </ThemedText>
-        <ThemedText style={styles.label} lightColor="#2A2B2E" darkColor="#F6F0ED">
-          Select Your Year:
-        </ThemedText>
-        <ThemedView style={styles.inputContainer} lightColor="#fff" darkColor="#333">
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your year"
-            value={query}
-            onChangeText={handleSearch}
-            onFocus={() => setDropdownVisible(true)}
-          />
-        </ThemedView>
-        {dropdownVisible && filteredYears.length > 0 && (
-          <ThemedView style={styles.dropdown} lightColor="#fff" darkColor="#333">
-            <FlatList
-              data={filteredYears}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleSelectYear(item)}>
-                  <ThemedText style={styles.dropdownItem} lightColor="#2A2B2E" darkColor="#F6F0ED">
-                    {item}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
+
+    return (
+        <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
+        <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#2A2B2E">
+            <ThemedText style={styles.welcomeText} lightColor="#2A2B2E" darkColor="#F6F0ED">
+            Welcome, please select your year of study
+            </ThemedText>
+            <ThemedText style={styles.label} lightColor="#2A2B2E" darkColor="#F6F0ED">
+            Select Your Year:
+            </ThemedText>
+            <ThemedView style={styles.inputContainer} lightColor="#fff" darkColor="#333">
+            <TextInput
+                style={styles.input}
+                placeholder="Enter your year"
+                value={query}
+                onChangeText={handleSearch}
+                onFocus={() => setDropdownVisible(true)}
             />
-          </ThemedView>
-        )}
-        {selectedYear ? (
-          <ThemedView style={styles.selectedContainer} lightColor="#F6F0ED" darkColor="#2A2B2E">
-            <ThemedText style={styles.selectedLabel} lightColor="#2A2B2E" darkColor="#F6F0ED">
-              Selected Year:
-            </ThemedText>
-            <ThemedText style={styles.selectedYear} lightColor="#2A2B2E" darkColor="#F6F0ED">
-              {selectedYear}
-            </ThemedText>
-          </ThemedView>
-        ) : null}
-        {selectedYear ? (
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-            <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
-              Continue
-            </ThemedText>
-          </TouchableOpacity>
-        ) : null}
-      </ThemedView>
-    </TouchableWithoutFeedback>
-  );
-}
+            </ThemedView>
+            {dropdownVisible && filteredYears.length > 0 && (
+            <ThemedView style={styles.dropdown} lightColor="#fff" darkColor="#333">
+                <FlatList
+                data={filteredYears}
+                keyExtractor={(item) => item}
+                renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => handleSelectYear(item)}>
+                    <ThemedText style={styles.dropdownItem} lightColor="#2A2B2E" darkColor="#F6F0ED">
+                        {item}
+                    </ThemedText>
+                    </TouchableOpacity>
+                )}
+                />
+            </ThemedView>
+            )}
+            {selectedYear ? (
+            <ThemedView style={styles.selectedContainer} lightColor="#F6F0ED" darkColor="#2A2B2E">
+                <ThemedText style={styles.selectedLabel} lightColor="#2A2B2E" darkColor="#F6F0ED">
+                Selected Year:
+                </ThemedText>
+                <ThemedText style={styles.selectedYear} lightColor="#2A2B2E" darkColor="#F6F0ED">
+                {selectedYear}
+                </ThemedText>
+            </ThemedView>
+            ) : null}
+            {selectedYear ? (
+            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
+                Continue
+                </ThemedText>
+            </TouchableOpacity>
+            ) : null}
+        </ThemedView>
+        </TouchableWithoutFeedback>
+    );
+    }
 
 const styles = StyleSheet.create({
   container: {

@@ -1,63 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
-import { useLocalSearchParams } from 'expo-router';
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { useAppContext } from '.././context'
+
 
 const Tab = createMaterialTopTabNavigator();
 
 const Posts = () => (
-  <View style={styles.tabContainer}>
-    <Text>Posts</Text>
+  <ThemedView style={styles.tabContainer} lightColor="#F6F0ED" darkColor="#2A2B2E">
+    <ThemedText lightColor="#2A2B2E" darkColor="#F6F0ED">Posts</ThemedText>
     {/* Render posts here */}
-  </View>
+  </ThemedView>
 );
 
 const Reposts = () => (
-  <View style={styles.tabContainer}>
-    <Text>Reposts</Text>
+  <ThemedView style={styles.tabContainer} lightColor="#F6F0ED" darkColor="#2A2B2E">
+    <ThemedText lightColor="#2A2B2E" darkColor="#F6F0ED">Reposts</ThemedText>
     {/* Render reposts here */}
-  </View>
+  </ThemedView>
 );
 
-export default  function ProfilePage() {
-    const { id } = useLocalSearchParams();
-    const [profileImage, setProfileImage] = useState<string | null>(null);
-    const [followers, setFollowers] = useState(100);  // Example count
-    const [following, setFollowing] = useState(150);  // Example count
-    const [username, setUsername] = useState("");
-  
+export default function ProfilePage() {
+  const { getGlobalUserId } = useAppContext();
+  const id = getGlobalUserId();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [followers, setFollowers] = useState(100);  // Example count
+  const [following, setFollowing] = useState(150);  // Example count
+  const [username, setUsername] = useState("");
 
-    useEffect(() => {
-        async function fetchUserData() {
-            try {
-            const userData = await fetch("http://172.31.17.153:3000/api/v1/getUserData", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },  
-                
-                body: JSON.stringify({
-                    id
-                })
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        const userData = await fetch("http://172.31.17.153:3000/api/v1/getUserData", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },  
+          body: JSON.stringify({ id })
+        });
+        const data = await userData.json();
 
-            })
-            const data = await userData.json();
-
-            if (!userData.ok) {
-                throw new Error(data.message);
-            }
-
-            setUsername(data.data.username);
-
-
-            } catch (error) {
-                console.error('Failed to fetch user data:', error);
-                Alert.alert('Error', 'Failed to load user data');        
-            }
+        if (!userData.ok) {
+          throw new Error(data.message);
         }
-        fetchUserData();
-    }, [id]);
+
+        setUsername(data.data.username);
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+        Alert.alert('Error', 'Failed to load user data');        
+      }
+    }
+    fetchUserData();
+  }, [id]);
 
   const pickImage = () => {
     const options: ImageLibraryOptions = {
@@ -84,25 +81,25 @@ export default  function ProfilePage() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.profileContainer}>
+    <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#2A2B2E">
+      <ThemedView style={styles.profileContainer} lightColor="#F6F0ED" darkColor="#2A2B2E">
         <TouchableOpacity onPress={pickImage}>
           <Image
             source={profileImage ? { uri: profileImage } : require('../../assets/images/favicon.png')}
             style={styles.profileImage}
           />
         </TouchableOpacity>
-        <Text style={styles.username}> {username} </Text>
-        <View style={styles.followContainer}>
-          <Text style={styles.followText}>{followers} Followers</Text>
-          <Text style={styles.followText}>{following} Following</Text>
-        </View>
-      </View>
+        <ThemedText style={styles.username} lightColor="#2A2B2E" darkColor="#F6F0ED"> {username} </ThemedText>
+        <ThemedView style={styles.followContainer} lightColor="#F6F0ED" darkColor="#2A2B2E">
+          <ThemedText style={styles.followText} lightColor="#2A2B2E" darkColor="#F6F0ED">{followers} Followers</ThemedText>
+          <ThemedText style={styles.followText} lightColor="#2A2B2E" darkColor="#F6F0ED">{following} Following</ThemedText>
+        </ThemedView>
+      </ThemedView>
       <Tab.Navigator>
         <Tab.Screen name="Posts" component={Posts} />
         <Tab.Screen name="Reposts" component={Reposts} />
       </Tab.Navigator>
-    </View>
+    </ThemedView>
   );
 }
 

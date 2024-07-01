@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, FlatList, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useAppContext } from '../context';
 
 const universities = [
   'National University of Singapore (NUS)',
@@ -16,7 +17,8 @@ const universities = [
 ];
 
 export default function SelectUniversity() {
-    const { id } = useLocalSearchParams();
+    const { getGlobalUserId } = useAppContext();
+    const id = getGlobalUserId();
     const [query, setQuery] = useState('');
     const [filteredUniversities, setFilteredUniversities] = useState(universities);
     const [selectedUniversity, setSelectedUniversity] = useState('');

@@ -1,17 +1,49 @@
 
-import { View, Text, FlatList, Image, RefreshControl } from 'react-native'
-import React, { useState } from 'react'
+import { View, Text, FlatList, Image, RefreshControl, Alert } from 'react-native'
+import React, { useState, useEffect } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Redirect, router } from 'expo-router'
+import { useAppContext } from '../context'
 
 import SearchInput from '@/components/SearchInput'
 import EmptyStateHome from '@/components/EmptyStateHome'
 import { icons } from '../../constants'
 import ImageButton from '@/components/ImageButton'
 
-const Home = () => {
 
+
+const Home = () => {
+    const { getGlobalUserId } = useAppContext();
+    const id = getGlobalUserId();
     const [refreshing, setRefreshing] = useState(false)
+    const [userData, setUserData] = useState<String[]>([]);
+    const [username, setUsername] = useState('');
+
+    useEffect(() => {
+        async function fetchUserData() {
+          try {
+            const userData = await fetch("http://172.31.17.153:3000/api/v1/getUserData", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },  
+              body: JSON.stringify({ id })
+            });
+            const data = await userData.json();
+    
+            if (!userData.ok) {
+              throw new Error(data.message);
+            }
+    
+            setUsername(data.data.username);
+          } catch (error) {
+            console.error('Failed to fetch user data:', error);
+            Alert.alert('Error', 'Failed to load user data');        
+          }
+        }
+        fetchUserData();
+      }, [id]);
+    
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -39,7 +71,7 @@ const Home = () => {
                     </Text>
                     <ImageButton
                     imageSource={icons.direct_messages}
-                    handlePress={() => router.push('/messages')} 
+                    handlePress={() => router.push('/chatsPage')} 
                     imageContainerStyles = "w-[40px] h-[25px]" 
                     />
             </View>

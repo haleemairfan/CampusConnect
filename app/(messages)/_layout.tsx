@@ -8,7 +8,7 @@ const MessagesLayout = () => {
     <>
         <Stack>
             <Stack.Screen
-                name="messages"
+                name="chatsPage"
                 options={{
                     headerShown: false
                 }}

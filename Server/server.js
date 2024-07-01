@@ -6,12 +6,43 @@ const express = require("express");
 const app = express();
 const { createClient } = require('@supabase/supabase-js'); 
 const bcrypt = require('bcrypt');
+const cors = require("cors");
+const { Server } = require("socket.io");
+const http = require('http');
+
+const port = process.env.PORT || 3000;   
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
+app.use(cors());
+
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: 'http://172.31.17.153:3000'
+    }
+});
+
+io.on('connection', (socket) => {
+    console.log(`User connected: ${socket.id}`);
+  
+    socket.on('send_message', (data) => {
+        console.log('Message received:', data);
+        socket.broadcast.emit('receive_message', data);
+    });
+  
+    socket.on('disconnect', () => {
+        console.log(`User disconnected: ${socket.id}`);
+    });
+});
+
+server.listen(port, () => {
+    console.log(`Server is up and listening on port ${port}`);
+});
+
 
 //// ACCOUNT FUNCTIONS
 // 1. Account Creation
@@ -25,7 +56,6 @@ app.post("/api/v1/createAccount", async (req, res) => {
                                                 { username: req.body.username, email: req.body.email, date_of_birth: req.body.date_of_birth, password_hash: hashedPassword  },
                                                ])
                                        .select()
-
         console.log(results);
         return res.status(200).json({
             status: "success",
@@ -174,7 +204,121 @@ app.post("/api/v1/insertUniversity", async (req, res) => {
     }
 });
 
-/** 
+
+app.post("/api/v1/insertInterests", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const interests = req.body.selectedInterests;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                            .update({interests: interests})
+                                            .eq('user_uuid', id)
+
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+app.post("/api/v1/insertAccommodation", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const accommodation = req.body.accommodation;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                            .update({campus_accommodation: accommodation})
+                                            .eq('user_uuid', id)
+
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+app.get('/api/v1/conversations', async (req, res) => {
+    const userId = req.query.userId;
+  
+    if (!userId) {
+      return res.status(400).json({ error: 'userId query parameter is required' });
+    }
+  
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .select('*')
+        .contains('participants', [userId]);
+  
+      if (error) {
+        throw error;
+      }
+  
+      res.status(200).json({ data });
+    } catch (error) {
+      console.error('Error fetching conversations:', error.message);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  // Create a new conversation
+  app.post('/api/v1/conversations', async (req, res) => {
+    const { userId, username } = req.body;
+  
+    try {
+      const { data, error } = await supabase
+        .from('conversations')
+        .insert([
+          { participants: [userId, username] }
+        ])
+        .select();
+  
+      if (error) {
+        throw error;
+      }
+  
+      const newConversation = data[0];
+  
+      // Emit event to all connected clients who are participants
+      io.emit('newConversation', newConversation);
+  
+      res.status(201).json({ data: newConversation });
+    } catch (error) {
+      console.error('Error creating conversation:', error.message);
+      res.status(500).json({ error: error.message });
+    }
+  });
+  
+  io.on('connection', (socket) => {
+    console.log('a user connected');
+    socket.on('disconnect', () => {
+      console.log('user disconnected');
+    });
+  });
+    
+  /** 
 
 // next() function tells us to send to the next middleware or route handler
 // middleware can be used to send response back to user, like so:
@@ -958,13 +1102,4 @@ app.put("/api/v1/Config/:user_uuid", async (req, res) => {
     }
 });
 */
-
-const port = process.env.PORT || 3000;   
-// Storing the value of port to the environment variable defined in env, if env not available, 
-// then listen on port 3000
-
-
-app.listen(port, () => {
-    console.log(`Server is up and listening on port ${port}`);
-});
 

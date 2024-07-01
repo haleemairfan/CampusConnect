@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, TouchableOpacity, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { router } from 'expo-router';
+import { useAppContext } from './context'
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -8,7 +9,7 @@ import { ThemedView } from '@/components/ThemedView';
 
 
 export default function login() {
-
+    const { setGlobalUserId } = useAppContext();
     const [identification, setIdentification] = useState('');
     const [password, setPassword] = useState('');
 
@@ -27,11 +28,13 @@ export default function login() {
             })
             const data = await results.json();
 
+
             if (!results.ok) {
                 throw new Error(data.message);
             } else {
                 const id = data.data.user;
-                router.push({ pathname: "./(tabs)/profilepage", params: { id }});
+                setGlobalUserId(id);    
+                router.push({ pathname: "./(tabs)/profilepage"});
             }
 
             

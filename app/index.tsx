@@ -30,7 +30,7 @@ export default function HomeScreen() {
 
       <CustomButton 
       title="Create an account"
-      handlePress={() => router.push('/accountcreation')}
+      handlePress={() => router.push('./accountcreation')}
       containerStyles="w-full justify-center mt-3"
       textStyles="text-lg text-center font-bold"
       buttonColor = "#d8a838"
@@ -40,7 +40,7 @@ export default function HomeScreen() {
       
       <CustomButton 
       title="Log in"
-      handlePress={() => router.push('/login')}
+      handlePress={() => router.push('./login')}
       containerStyles="w-full justify-center mt-3 mb-3"
       textStyles="text-lg text-center font-bold"
       buttonColor = "#d8a838"

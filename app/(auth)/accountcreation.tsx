@@ -4,8 +4,10 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useAppContext } from '.././context'
 
 export default function AccountCreation() {
+  const { setGlobalUserId } = useAppContext();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [date_of_birth, setDateOfBirth] = useState('');
@@ -32,7 +34,7 @@ export default function AccountCreation() {
   async function handleSignUp() {
     try {
       //replace with your machine IP address
-      const results = await fetch('http://172.31.40.195:3000/api/v1/createAccount', {
+      const results = await fetch('http://172.31.17.153:3000/api/v1/createAccount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -50,9 +52,10 @@ export default function AccountCreation() {
         throw new Error(data.message);
       }
       const id = data.data.user_uuid;
+      setGlobalUserId(id);
 
       Alert.alert('Success', 'Account created successfully',
-        [{ text: 'Continue', onPress: () => router.push({ pathname: './login', params: { id } }) }]);
+        [{ text: 'Continue', onPress: () => router.push({ pathname: './login'}) }]);
     } catch (error) {
       console.error('Sign up error:', error);
       Alert.alert('Error', 'Failed to create account',

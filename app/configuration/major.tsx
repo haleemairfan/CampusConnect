@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TextInput, StyleSheet, FlatList, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useLocalSearchParams } from 'expo-router';
 import { router } from 'expo-router';
+import { useAppContext } from '../context';
 
 
 const majors = [
@@ -55,7 +55,8 @@ const majors = [
 
 
 export default function SelectMajor() {
-  const { id } = useLocalSearchParams();
+  const { getGlobalUserId } = useAppContext();
+  const id = getGlobalUserId();
   const [query, setQuery] = useState('');
   const [filteredMajors, setFilteredMajors] = useState(majors);
   const [selectedMajor, setSelectedMajor] = useState('');
@@ -100,7 +101,7 @@ export default function SelectMajor() {
       if (!results.ok) {
         throw new Error(data.message);
       }
-      router.push({ pathname: './university', params: { id } })
+      router.push({ pathname: './university' })
     } catch (error) {
       console.error('Invalid major selected:', error);
       Alert.alert('Error', 'Invalid Major Selected',

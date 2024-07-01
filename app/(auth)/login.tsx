@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, TouchableOpacity, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { router } from 'expo-router';
+import { useAppContext } from '.././context'
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -8,14 +9,14 @@ import { ThemedView } from '@/components/ThemedView';
 
 
 export default function login() {
-
+    const { setGlobalUserId } = useAppContext();
     const [identification, setIdentification] = useState('');
     const [password, setPassword] = useState('');
 
     async function handleSignUp() {
         try {
             //replace with your machine IP address
-            const results = await fetch('http://172.31.40.195:3000/api/v1/logIn', {
+            const results = await fetch('http://172.31.17.153:3000/api/v1/logIn', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -26,12 +27,14 @@ export default function login() {
                 }),
             })
             const data = await results.json();
+            const id = data.data.user;
+            setGlobalUserId(id);
+
 
             if (!results.ok) {
                 throw new Error(data.message);
             } else {
-                const id = data.data.user;
-                router.push({ pathname: "./(tabs)/profilepage", params: { id }});
+                router.push({ pathname: "./(tabs)/profilepage"});
             }
 
             
