@@ -34,7 +34,7 @@ const settings = () => {
                   <View className = "items-center">
                     <CustomButton 
                       title="Change Password"
-                      handlePress={() => router.push('/login')}
+                      handlePress={() => router.push('/interests')}
                       containerStyles="w-full justify-center mt-3 mb-3"
                       textStyles="text-lg text-center font-bold"
                       buttonColor = "#d8a838"

@@ -1,8 +1,7 @@
 
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native'
 import { Tabs, Redirect } from 'expo-router'
-import { TabBarIcon } from '@/componentss/navigation/TabBarIcon';
-import MessagesStack from './MessagesStack'
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 
 import { icons } from '../../constants';
 

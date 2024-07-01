@@ -1,60 +1,62 @@
 
 import { View, Text, FlatList, Image, RefreshControl, Alert } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Redirect, router } from 'expo-router'
-import { useAppContext } from '../context'
 
 import SearchInput from '@/components/SearchInput'
 import EmptyStateHome from '@/components/EmptyStateHome'
 import { icons } from '../../constants'
 import ImageButton from '@/components/ImageButton'
 
-
-
 const Home = () => {
-    const { getGlobalUserId } = useAppContext();
-    const id = getGlobalUserId();
+    const [data, setData] = useState([]);
+    const [isLoading, setisLoading] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
-    const [userData, setUserData] = useState<String[]>([]);
-    const [username, setUsername] = useState('');
+
+    async function getAllPosts () {
+        try {
+            const results = await fetch('http://192.168.1.98:3000/api/v1/Posts');
+            const data = await results.json();
+            const post = data.data.posts;
+            const postTitle = post.post_title;
+            const postBody = post.post_body;
+            console.log(postTitle);
+            console.log(postBody)
+        } catch (error) {
+            console.error('Error fetching posts:', error.message);
+            return [];
+        }
+    }
 
     useEffect(() => {
-        async function fetchUserData() {
-          try {
-            const userData = await fetch("http://172.31.17.153:3000/api/v1/getUserData", {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },  
-              body: JSON.stringify({ id })
-            });
-            const data = await userData.json();
-    
-            if (!userData.ok) {
-              throw new Error(data.message);
-            }
-    
-            setUsername(data.data.username);
-          } catch (error) {
-            console.error('Failed to fetch user data:', error);
-            Alert.alert('Error', 'Failed to load user data');        
-          }
+        const fetchData = async () => {
+            setisLoading(true);
+        
+        try {
+            const response = await getAllPosts();
+            setData(response)
+        } catch (error) {
+            Alert.alert('Error', error.message)
+        } finally {
+            setisLoading(false);
         }
-        fetchUserData();
-      }, [id]);
-    
+        }
+        fetchData();  
+    }, []);
+    console.log(data)
 
     const onRefresh = async () => {
         setRefreshing(true);
-        // recall new posts to see if any new posts appeared
+        await getAllPosts();
         setRefreshing(false);
     }
+
 
     return (
     <SafeAreaView className = 'bg-primary h-full'>
        <FlatList
-       data = {[]}
+       data = {data}
        keyExtractor={(item) => item.$id}
        renderItem={({ item }) => (
         <Text className = "text-3xl text-white">{item.id}</Text>
@@ -71,7 +73,7 @@ const Home = () => {
                     </Text>
                     <ImageButton
                     imageSource={icons.direct_messages}
-                    handlePress={() => router.push('/chatsPage')} 
+                    handlePress={() => router.push('/messages')} 
                     imageContainerStyles = "w-[40px] h-[25px]" 
                     />
             </View>
