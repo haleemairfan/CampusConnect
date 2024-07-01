@@ -1,6 +1,6 @@
-<<<<<<< HEAD
 # **Campus Connect**
-
+For a more detailed README, please visit: [README Milestone 2](https://docs.google.com/document/d/1_ROoegxTfGiJHuxI4EPCHc7enLd2ztP5-vwhHjduOVE/edit?usp=drive_link)
+<br>
 
 ## **Project Description**
 ### Section 1: Motivation and Aims
@@ -62,12 +62,7 @@ They then respectively branch out to their individual tables like so:
 <br>
 
 ## **Installation and Running**
-we used the expo app template to create the frontend of our app using react native.
-you can run our app on an android emulator.
-Currently the login page is not completed and has a placeholder page.
-The account creation page is completed however, we were unable to figure out why the frontend is not able to connect to the backend and send the necessary data
-The backend is located in the node-mySQL folder. we used mySQL as we havent fully figured out how to integrate postgreSQL with node.js. To run our backend server, use the command npm start. Our mySQL database is locally created via PHPMyAdmin.
-
+For more details, please visit: [README Milestone 2](https://docs.google.com/document/d/1_ROoegxTfGiJHuxI4EPCHc7enLd2ztP5-vwhHjduOVE/edit?usp=drive_link)
 <br>
 
 **Orbital Team 6211: Halemma Irfan and Yeo Jaye Lin**
