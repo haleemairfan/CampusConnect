@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput, StyleSheet, TouchableOpacity, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { TextInput, StyleSheet, TouchableOpacity, Alert, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 
 import { ThemedText } from '@/components/ThemedText';
@@ -12,9 +12,14 @@ export default function login() {
     const [identification, setIdentification] = useState('');
     const [password, setPassword] = useState('');
 
+    const [focusedBox, setFocusedBox] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
     async function handleSignUp() {
+        setIsLoading(true)
         try {
             //replace with your machine IP address
+            
             const results = await fetch('http://192.168.1.98:3000/api/v1/logIn', {
                 method: 'POST',
                 headers: {
@@ -31,7 +36,7 @@ export default function login() {
                 throw new Error(data.message);
             } else {
                 const id = data.data.user;
-                router.push({ pathname: "/profilepage", params: { id }});
+                router.push({ pathname: "./profile", params: { id }});
             }
 
             
@@ -39,6 +44,8 @@ export default function login() {
             console.error('Sign up error:', error);
             Alert.alert('Error', 'Failed to sign in. Please try again later.');
       
+        } finally {
+            setIsLoading(false)
         }
     }
    
@@ -51,44 +58,55 @@ export default function login() {
             <ThemedView 
                 style={styles.container}
                 lightColor = "#F6F0ED"
-                darkColor= '#2A2B2E'>
+                darkColor= "#161622">
                     <ThemedText 
                         style = {styles.text}
                         lightColor = '#2A2B2E'
                         darkColor= '#F6F0ED'>
-                        Username/Email:
+                        Username / Email
                     </ThemedText>
         
                     <TextInput
-                        style={styles.input}
-                        placeholder="Enter your username/email"
+                        style={[styles.input, focusedBox === 'username' && styles.inputFocused]}
+                        placeholder="Enter your username or email..."
+                        placeholderTextColor="#7b7b8b"
                         value={identification}
                         onChangeText={setIdentification}
+                        onFocus = {() => setFocusedBox('username')}
+                        onBlur={() => setFocusedBox(null)}
                     />
                     <ThemedText 
                         style={styles.text}
                         lightColor = '#2A2B2E'
                         darkColor= '#F6F0ED'>
-                        Password:
+                        Password
                     </ThemedText>
                     <TextInput
-                        style={styles.input}
-                        placeholder="Enter your password"
+                        style={[styles.input, focusedBox === 'password' && styles.inputFocused]}
+                        placeholder="Enter your password..."
+                        placeholderTextColor="#7b7b8b"
                         value={password}
                         secureTextEntry
                         onChangeText={setPassword}
+                        onFocus = {() => setFocusedBox('password')}
+                        onBlur={() => setFocusedBox(null)}
                     />
                     
                 <TouchableOpacity
-                style = {styles.button}
-                onPress = {handleSignUp}>
-                    <ThemedText
-                    style = {styles.text}
-                    lightColor = '#2A2B2E'
-                    darkColor= '#F6F0ED'
-                    type = 'default'>
-                    Log in 
+                    style={styles.button}
+                    onPress={isLoading ? undefined: handleSignUp}
+                    disabled={isLoading}>
+                    {isLoading ? (
+                        <ActivityIndicator size = "small" color = "#d8a838" />
+                    ) : (
+                        <ThemedText
+                        style = {styles.text}
+                        lightColor = '#2A2B2E'
+                        darkColor= '#F6F0ED'
+                        type = 'default'>
+                        {isLoading ? "Logging in..." : "Let's go!"}
                     </ThemedText>
+                    )}
                 </TouchableOpacity>
             </ThemedView>
         </TouchableWithoutFeedback>
@@ -98,26 +116,45 @@ export default function login() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexDirection: 'column',
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
     },
-    
+  
     text: {
-        textAlign: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontSize: 18,
     },
-
-
+  
     input: {
-        height: 40,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        marginBottom: 16,
-        padding: 8,
+      paddingHorizontal: 16,
+      borderRadius: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      height: 50,
+      width: 250,
+      borderColor: '#ccc',
+      borderWidth: 1,
+      marginBottom: 20,
+      marginTop: 5,
+      color: '#7b7b8b'
     },
-
+    inputFocused: {
+      borderColor: 'red'
+    },
+  
     button: {
-        backgroundColor: 'transparent'
+      paddingTop: 10,
+      paddingBottom: 10,
+      borderRadius: 16, 
+      backgroundColor: 'transparent',
+      borderColor: '#d8a838',
+      borderWidth: 3,
+      width: 220,
+      marginTop: 20
     }
-});
+  });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TextInput, StyleSheet, TouchableOpacity, Alert, Pressable, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { TextInput, StyleSheet, TouchableOpacity, Alert, Pressable, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
@@ -13,6 +13,8 @@ export default function AccountCreation() {
   const [date, setDate] = useState(new Date());
   const [password, setPassword] = useState('');
 
+  const [focusedBox, setFocusedBox] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
@@ -30,6 +32,7 @@ export default function AccountCreation() {
   };
 
   async function handleSignUp() {
+    setIsLoading(true);
     try {
       //replace with your machine IP address
       const results = await fetch('http://192.168.1.98:3000/api/v1/createAccount', {
@@ -61,8 +64,10 @@ export default function AccountCreation() {
       setEmail('');
       setDateOfBirth('');
       setPassword('');
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <TouchableWithoutFeedback
@@ -75,38 +80,48 @@ export default function AccountCreation() {
       <ThemedView
         style={styles.container}
         lightColor="#F6F0ED"
-        darkColor="#2A2B2E">
+        darkColor="#161622">
         <ThemedText
           style={styles.text}
           lightColor="#2A2B2E"
           darkColor="#F6F0ED">
-          Username:
+          Username
         </ThemedText>
 
         <TextInput
-          style={styles.input}
-          placeholder="Enter your name"
+          style={[styles.input, focusedBox === 'username' && styles.inputFocused]}
+          placeholder="Enter a cool username..."
+          placeholderTextColor="#7b7b8b"
           value={username}
           onChangeText={setUsername}
+          onFocus = {() => setFocusedBox('username')}
+          onBlur={() => setFocusedBox(null)}
         />
+
         <ThemedText
           style={styles.text}
           lightColor="#2A2B2E"
           darkColor="#F6F0ED">
-          Email:
+          Email
         </ThemedText>
+
         <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
+          style={[styles.input, focusedBox === 'email' && styles.inputFocused]}
+          placeholder="Enter your email..."
+          placeholderTextColor="#7b7b8b"
           value={email}
           onChangeText={setEmail}
+          onFocus = {() => setFocusedBox('email')}
+          onBlur={() => setFocusedBox(null)}
         />
+
         <ThemedText
           style={styles.text}
           lightColor="#2A2B2E"
           darkColor="#F6F0ED">
-          Date Of Birth:
+          Date Of Birth
         </ThemedText>
+
         {showPicker && (
           <DateTimePicker
             mode="date"
@@ -115,39 +130,53 @@ export default function AccountCreation() {
             onChange={onChange}
           />
         )}
+
         <Pressable onPress = {toggleDatePicker}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, focusedBox === 'date_of_birth' && styles.inputFocused]}
               placeholder="YYYY-MM-DD"
+              placeholderTextColor="#7b7b8b"
               value={date_of_birth}
               onChangeText={setDateOfBirth}
               editable={false}
+              onFocus = {() => setFocusedBox(date_of_birth)}
+              onBlur={() => setFocusedBox(null)}
             />
         </Pressable>
+
         <ThemedText
           style={styles.text}
           lightColor="#2A2B2E"
           darkColor="#F6F0ED">
-          Password:
+          Password
         </ThemedText>
+
         <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
+          style={[styles.input, focusedBox === 'password' && styles.inputFocused]}
+          placeholder="Enter a strong password..."
+          placeholderTextColor="#7b7b8b"
           value={password}
           secureTextEntry
           onChangeText={setPassword}
+          onFocus = {() => setFocusedBox('password')}
+          onBlur={() => setFocusedBox(null)}
         />
 
         <TouchableOpacity
           style={styles.button}
-          onPress={handleSignUp}>
-          <ThemedText
+          onPress={isLoading ? undefined: handleSignUp}
+          disabled={isLoading}>
+          {isLoading ? (
+            <ActivityIndicator size = "small" color = "#d8a838" />
+          ) : (
+            <ThemedText
             style={styles.text}
-            lightColor="#2A2B2E"
-            darkColor="#F6F0ED"
+            lightColor = "#2A2B2E"
+            darkColor = "#F6F0ED"
             type="default">
-            Create an account
-          </ThemedText>
+            {isLoading ? "Creating..." : "Create your account!"}
+            </ThemedText>
+          )}
         </TouchableOpacity>
       </ThemedView>
     </TouchableWithoutFeedback>
@@ -164,17 +193,37 @@ const styles = StyleSheet.create({
 
   text: {
     textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
   },
 
   input: {
-    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    paddingTop: 12,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    height: 50,
+    width: 250,
     borderColor: '#ccc',
     borderWidth: 1,
-    marginBottom: 16,
-    padding: 8,
+    marginBottom: 20,
+    marginTop: 5,
+    color: '#7b7b8b'
+  },
+  inputFocused: {
+    borderColor: 'red'
   },
 
   button: {
-    backgroundColor: 'transparent'
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: 16, 
+    backgroundColor: 'transparent',
+    borderColor: '#d8a838',
+    borderWidth: 3,
+    width: 220,
+    marginTop: 20
   }
 });
