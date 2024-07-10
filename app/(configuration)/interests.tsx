@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { StyleSheet, FlatList, TouchableOpacity, Alert, View } from 'react-native';
+import { StyleSheet, FlatList, TouchableOpacity, Alert, View, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 
 const interests = [
   'Traveling', 'Reading', 'Music', 'Sports', 'Cooking', 
@@ -12,7 +14,10 @@ const interests = [
 ];
 
 export default function SelectInterests() {
+  const { id } = useLocalSearchParams();
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+
+  const [isLoading, setIsLoading] = useState(false)
 
   const toggleInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -44,11 +49,42 @@ export default function SelectInterests() {
     </TouchableOpacity>
   );
 
+  async function insertInterests() {
+    setIsLoading(true)
+      try {
+      const results = await fetch("http://192.168.1.98:3000/api/v1/insertInterests", {
+          method: 'POST',
+          headers: {
+          'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+          id,
+          selectedInterests,
+          }),
+      });
+      
+      const data = await results.json();
+
+      if (!results.ok) {
+          throw new Error(data.message);
+      }
+      router.push({ pathname: './profile', params: { id } })
+      } catch (error) {
+      console.error('Invalid interests selected.', error);
+      Alert.alert('Error', 'Invalid interests selected.',
+          [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
+
+      } finally {
+        setIsLoading(false)
+      }
+  }
+
   return (
-    <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#2A2B2E">
+    <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#161622">
       <View style={styles.contentContainer}>
         <ThemedText style={styles.welcomeText} lightColor="#2A2B2E" darkColor="#F6F0ED">
-          Select up to 5 interests
+          Let's spice it up a little! {'\n'} {'\n'}
+          Select up to 5 interests!
         </ThemedText>
         <FlatList
           data={interests}
@@ -58,12 +94,16 @@ export default function SelectInterests() {
           contentContainerStyle={styles.interestsContainer}
         />
         {selectedInterests.length > 0 && (
-          <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-            <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
-              Continue
-            </ThemedText>
-          </TouchableOpacity>
-        )}
+          <TouchableOpacity style={styles.continueButton} onPress={insertInterests} disabled={isLoading}>
+          {isLoading ? (
+                <ActivityIndicator size="small" color="#F6F0ED" />
+              ): (
+                <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
+                Continue
+                </ThemedText>
+              )}
+            </TouchableOpacity>
+            )}
       </View>
     </ThemedView>
   );
@@ -88,15 +128,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bubble: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: "#161622",
     paddingVertical: 10,
     paddingHorizontal: 15,
     margin: 5,
     borderRadius: 20,
     alignItems: 'center',
+    borderColor: '#d8a838',
+    borderWidth: 1
   },
   selectedBubble: {
     backgroundColor: '#007BFF',
+    borderColor: '#007BFF',
+    borderWidth: 1
   },
   bubbleText: {
     fontSize: 14,
