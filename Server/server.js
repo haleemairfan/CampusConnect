@@ -6,43 +6,12 @@ const express = require("express");
 const app = express();
 const { createClient } = require('@supabase/supabase-js'); 
 const bcrypt = require('bcrypt');
-const cors = require("cors");
-const { Server } = require("socket.io");
-const http = require('http');
-
-const port = process.env.PORT || 3000;   
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
-app.use(cors());
-
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: 'http://172.31.17.153:3000'
-    }
-});
-
-io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
-  
-    socket.on('send_message', (data) => {
-        console.log('Message received:', data);
-        socket.broadcast.emit('receive_message', data);
-    });
-  
-    socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-    });
-});
-
-server.listen(port, () => {
-    console.log(`Server is up and listening on port ${port}`);
-});
-
 
 //// ACCOUNT FUNCTIONS
 // 1. Account Creation
@@ -55,11 +24,12 @@ app.post("/api/v1/createAccount", async (req, res) => {
                                        .insert([
                                                 { username: req.body.username, email: req.body.email, date_of_birth: req.body.date_of_birth, password_hash: hashedPassword  },
                                                ])
-                                       .select()
+                                       .select('*')
+
         console.log(results);
         return res.status(200).json({
             status: "success",
-            data: results.data[0]
+            data: results.data
         });
     } catch (err) {
         console.error(err);
@@ -69,7 +39,6 @@ app.post("/api/v1/createAccount", async (req, res) => {
         });
     }
 });
-
 
 
 // 2. Log In
@@ -93,254 +62,32 @@ app.post("/api/v1/logIn", async (req, res) => {
                 message: "Invalid username/email"
             });
         }
-    
+
         const user = users[0];
-            
-            
+
         const isValidPassword = await bcrypt.compare(password, user.password_hash);
         console.log(isValidPassword);
-    
+
         if (!isValidPassword) {
             return res.status(400).json({
                 status: "error",
                 message: "Invalid password"
             });
-                
+            
         }
-    
+
         return res.status(200).json({
             status: "success",
             data: {
-                user: user.user_uuid
+                user: user,
             }
         });
-    
 
     } catch (err) {
         console.error("Caught an error: ", err);
     }
 });
 
-app.post("/api/v1/getUserData", async(req, res) => {
-    console.log(req.body);
-    const id = req.body.id;
-    try {
-        const { data: users, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('user_uuid', id);        
-        
-        const user = users[0];
-
-        return res.status(200).json({
-            status: "success",
-            data: {
-                username: user.username,
-                password: user.password_hash,
-                date_of_birth: user.date_of_birth
-            }
-        })
-    } catch (err) {
-        return res.status(400).json({
-            status: "error",
-            message: "User not found"
-        });
-    }
- });
-
- app.post("/api/v1/insertMajor", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const major = req.body.selectedMajor;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                        .insert([
-                                                { user_uuid: id, major: major },
-                                               ])
-                                        .select();
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-
-app.post("/api/v1/insertUniversity", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const university = req.body.selectedUniversity;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                            .update({university: university})
-                                            .eq('user_uuid', id)
-
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-
-app.post("/api/v1/insertInterests", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const interests = req.body.selectedInterests;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                            .update({interests: interests})
-                                            .eq('user_uuid', id)
-
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-app.post("/api/v1/insertAccommodation", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const accommodation = req.body.accommodation;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                            .update({campus_accommodation: accommodation})
-                                            .eq('user_uuid', id)
-
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-app.get('/api/v1/conversations', async (req, res) => {
-    const userId = req.query.userId;
-  
-    if (!userId) {
-      return res.status(400).json({ error: 'userId query parameter is required' });
-    }
-  
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .contains('participants', [userId]);
-  
-      if (error) {
-        throw error;
-      }
-  
-      res.status(200).json({ data });
-    } catch (error) {
-      console.error('Error fetching conversations:', error.message);
-      res.status(500).json({ error: error.message });
-    }
-  });
-  
-  // Create a new conversation
-  app.post('/api/v1/conversations', async (req, res) => {
-    const { userId, username } = req.body;
-  
-    try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert([
-          { participants: [userId, username] }
-        ])
-        .select();
-  
-      if (error) {
-        throw error;
-      }
-  
-      const newConversation = data[0];
-  
-      // Emit event to all connected clients who are participants
-      io.emit('newConversation', newConversation);
-  
-      res.status(201).json({ data: newConversation });
-    } catch (error) {
-      console.error('Error creating conversation:', error.message);
-      res.status(500).json({ error: error.message });
-    }
-  });
-  
-  io.on('connection', (socket) => {
-    console.log('a user connected');
-    socket.on('disconnect', () => {
-      console.log('user disconnected');
-    });
-  });
-    
-  /** 
-
-// next() function tells us to send to the next middleware or route handler
-// middleware can be used to send response back to user, like so:
-//  res.status(404).json({
-//      status: "fail",
-//  });
-// drop a request but putting nothing inside
-// ton of 3rd party middleware (e.g. morgan), already configured to call the next function,
-// so there is no need to indicate next
-// express.json() provides the body as a convenient standard javascript object
-
-
-
-
-
-// first parameter is the url in the form: http://localhost:{port_num}/{name of get function}
-// second parameter is the callback function:
-// request is stored in the first variable and response is stored in the second variable
-// This is a restful API. If we console.log("...") here, it will print whatever is in it in the terminal.
-// however, if we do a res.send(...), the browser will show all the restaurants.
-// res.json will put it in a json format for react client that can easily parse the data
-// to change the status on Postman (e.g. 200, 404), change to res.status(...).json(...)
 // 3. Update Account Details
 app.put("/api/v1/updateAccount/:user_uuid", async (req, res) => {
     console.log(req.body);
@@ -415,7 +162,7 @@ app.delete("/api/v1/Account/:user_uuid", async (req, res) => {
 });
 
 // 5. Get Account Information
-app.get("/api/v1/Account/:user_uuid", async (req, res) => {
+app.get("/api/v1/getUserData/:user_uuid", async (req, res) => {
     console.log(req.params.user_uuid);
     try {
         const { data, error } = await supabase
@@ -445,11 +192,16 @@ app.get("/api/v1/Account/:user_uuid", async (req, res) => {
 
 //// SECTION 2: POSTS TABLE
 // 1. Get All Posts
-app.get('/api/v1/Posts', async (req, res) => {
+app.get('/api/v1/allPosts', async (req, res) => {
     try {
         const { data, error } = await supabase
             .from('posts')
-            .select('*');
+            .select(`*
+                ,
+                users (username)
+                `)
+            .order('post_date', { ascending: false })
+            .order('post_time', { ascending: false });
 
         if (error) {
             throw error;
@@ -501,17 +253,23 @@ app.get("/api/v1/Posts/:post_uuid", async (req, res) => {
 });
 
 // 3. Create a post
-app.post("/api/v1/Posts", async (req, res) => {
+app.post("/api/v1/createPost/:user_uuid", async (req, res) => {
     console.log(req.body);
     try {
+        const currentDate = new Date();
+        const postDate = currentDate.toISOString().split('T')[0];
+        const postTime = currentDate.toTimeString().split(' ')[0];
+        const userUuid = req.params.user_uuid;
+
         const { data, error } = await supabase
             .from('posts')
             .insert([
                 {
-                    post_title: req.body.post_title,
-                    post_body: req.body.post_body,
-                    post_date: new Date().toISOString(), // Adding current date
-                    post_time: new Date().toISOString()  // Adding current time
+                    post_title: req.body.title,
+                    post_body: req.body.body,
+                    post_date: postDate, // Adding current date
+                    post_time: postTime,  // Adding current time
+                    user_uuid: userUuid,
                 }
             ])
             .select('*');
@@ -531,6 +289,180 @@ app.post("/api/v1/Posts", async (req, res) => {
         console.log(err);
         res.status(500).json({
             status: "error",
+            message: err.message,
+        });
+    }
+});
+
+// Get user's post
+app.get("/api/v1/getPosts/:user_uuid", async (req, res) => {
+    console.log(req.params.user_uuid);
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .select(`*
+                ,
+                users (username)
+                `)
+            .eq('user_uuid', req.params.user_uuid);
+
+        if (error) {
+            throw error;
+        }
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                posts: data,  // should NOT be data[0] because we are getting all the columms
+            },
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            status: 'error',
+            message: err.message,
+        });
+    }
+});
+
+// Update post count
+app.put("/api/v1/updatePostCount/:post_uuid", async (req, res) => {
+    console.log(req.body);
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .update({
+                like_count: req.body.like_count,
+                bookmark_count: req.body.bookmark_count,
+                liked_by_user: req.body.liked,
+                bookmarked_by_user: req.body.bookmarked
+            })
+            .eq('post_uuid', req.params.post_uuid)
+            .select('*');
+
+        if (error) {
+            throw error;
+        }
+
+        console.log(data);
+        res.status(200).json({
+            status: "success",
+            data: {
+                posts: data,
+            },
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            status: "error",
+            message: err.message,
+        });
+    }
+});
+
+// Delete post
+app.delete("/api/v1/deletePost/:post_uuid", async (req, res) => {
+    const post_uuid = req.params.post_uuid; // Extract post_uuid from request parameters
+
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .delete()
+            .eq('post_uuid', post_uuid);
+
+        if (error) {
+            throw error;
+        }
+
+        if (data && data.length === 0) {
+            // If no rows were affected, handle accordingly (optional)
+            res.status(404).json({
+                status: "error",
+                message: "Post not found or already deleted",
+            });
+            return;
+        }
+
+        res.status(200).json({
+            status: "success",
+            message: "Post deleted successfully",
+        });
+
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({
+            status: "error",
+            message: "Failed to delete post",
+        });
+    }
+});
+
+// Update post
+app.put("/api/v1/updatePost/:post_uuid", async (req, res) => {
+    console.log(req.body);
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .update({
+                post_title: req.body.title,
+                post_body: req.body.body
+            })
+            .eq('post_uuid', req.params.post_uuid)
+            .select('*');
+
+        if (error) {
+            throw error;
+        }
+
+        console.log(data);
+        res.status(200).json({
+            status: "success",
+            data: {
+                posts: data,
+            },
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            status: "error",
+            message: err.message,
+        });
+    }
+});
+
+
+// Search all posts
+app.get("/api/v1/searchedPosts/:query", async (req, res) => {
+    const query = req.params.query;
+    
+    try {
+        const { data, error } = await supabase
+            .from('posts')
+            .select(`
+                *,
+                users (username)
+            `);
+
+        if (error) {
+            throw error;
+        }
+
+        const filteredData = data.filter(post =>
+            post.post_title.includes(query) ||
+            post.post_body.includes(query) ||
+            post.users.username.includes(query)
+        );
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                posts: filteredData,
+            },
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            status: 'error',
             message: err.message,
         });
     }
@@ -1102,4 +1034,156 @@ app.put("/api/v1/Config/:user_uuid", async (req, res) => {
     }
 });
 */
+
+// Configuration Pages
+// 1. Insert University
+app.post("/api/v1/insertUniversity", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const university = req.body.selectedUniversity;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                            .update({university: university})
+                                            .eq('user_uuid', id)
+
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+// 2. Insert Interests
+app.post("/api/v1/insertInterests", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const interests = req.body.selectedInterests;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                            .update({interests: interests})
+                                            .eq('user_uuid', id)
+
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+// 3. Insert Accomodation
+app.post("/api/v1/insertAccommodation", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const accommodation = req.body.accommodation;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                            .update({campus_accommodation: accommodation})
+                                            .eq('user_uuid', id)
+
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+// 4. Insert Major
+app.post("/api/v1/insertMajor", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const major = req.body.selectedMajor;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                        .insert([
+                                                { user_uuid: id, major: major },
+                                               ])
+                                        .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+// 4. Insert Year of Study
+app.post("/api/v1/insertYear", async (req, res) => {
+    console.log(req.body);
+    const id  = req.body.id;
+    const yearofstudy = req.body.selectedYear;
+    try {
+
+        const {data, error} = await supabase.from('configuration')
+                                        .insert([
+                                                { user_uuid: id, year_of_study: yearofstudy },
+                                               ])
+                                        .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return res.status(200).json({
+            status: "success",
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Invalid input"
+        });
+    }
+});
+
+const port = process.env.PORT || 3000;   
+// Storing the value of port to the environment variable defined in env, if env not available, 
+// then listen on port 3000
+
+
+app.listen(port, () => {
+    console.log(`Server is up and listening on port ${port}`);
+});
 

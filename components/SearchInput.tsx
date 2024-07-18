@@ -8,6 +8,7 @@ import { router, usePathname } from 'expo-router'
 const SearchInput = ({ title, value, placeholder, handleChangeText, otherStyles, ...props }) => {
     const pathname = usePathname()
     const [query, setQuery] = useState('')
+    
   return (
       <View className="w-full h-16 px-4 bg-black-100 rounded-2xl 
       focus:border-orange-200 items-center flex-row space-x-4">
