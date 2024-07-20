@@ -14,6 +14,12 @@ const otherTabsLayout = () => {
                     headerShown: false
                 }}
             />
+            <Stack.Screen
+                name = "chat"
+                options = {{
+                  headerShown: false
+                }}
+            />
         </Stack>
 
         <StatusBar backgroundColor="#161622" style="light" />

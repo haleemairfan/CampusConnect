@@ -5,6 +5,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { AppProvider } from './context';
+
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -28,14 +31,16 @@ const RootLayout = () => {
 
 
     return (
-        <Stack>
-            <Stack.Screen name = "index" options = {{ headerShown: false}} />
-            <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
-            <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
-            <Stack.Screen name = "(configuration)" options = {{ headerShown: false}} />  
-            <Stack.Screen name = "(othertabs)" options = {{ headerShown: false}} />
-            <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />        
-        </Stack>
+      <AppProvider>
+          <Stack>
+              <Stack.Screen name = "index" options = {{ headerShown: false}} />
+              <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
+              <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
+              <Stack.Screen name = "(configuration)" options = {{ headerShown: false}} />  
+              <Stack.Screen name = "(othertabs)" options = {{ headerShown: false}} />
+              <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />        
+          </Stack>
+      </AppProvider>
     )
 }
 

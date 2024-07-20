@@ -4,8 +4,11 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import socket from '../chatClient';
+import { useAppContext } from '../context';
 
 export default function AccountCreation() {
+  const { setGlobalUserId }= useAppContext();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [date_of_birth, setDateOfBirth] = useState('');
@@ -35,7 +38,7 @@ export default function AccountCreation() {
     setIsLoading(true);
     try {
       //replace with your machine IP address
-      const results = await fetch('http://192.168.1.98:3000/api/v1/createAccount', {
+      const results = await fetch('http://172.31.16.94:3000/api/v1/createAccount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -52,10 +55,26 @@ export default function AccountCreation() {
       if (!results.ok) {
         throw new Error(data.message);
       }
-      const id = data.data.user_uuid;
 
-      Alert.alert('Success', 'Account created successfully',
-        [{ text: 'Continue', onPress: () => router.push({ pathname: '/university', params: { id } }) }]);
+      socket.auth = {
+        username: username
+      }
+
+ 
+      socket.connect();
+
+      socket.on('connect', () => {
+        console.log('Connected to the server');
+      });
+    
+    
+      const id = data.data.user_uuid;
+      setGlobalUserId(id);
+
+      setTimeout(() => {
+        Alert.alert('Success', 'Account created successfully',
+        [{ text: 'Continue', onPress: () => router.push({ pathname: '../(tabs)/profile', params: { id } }) }]);
+      }, 100);
     } catch (error) {
       console.error('Sign up error:', error);
       Alert.alert('Error', 'Failed to create account',

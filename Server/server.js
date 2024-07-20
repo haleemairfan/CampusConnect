@@ -22,22 +22,39 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'http://172.31.17.153:3000'
+        origin: 'http://192.168.50.176:3000',
+        methods: ["POST"]
     }
 });
 
+const socketUserMap = new Map();
+
+
+
+io.use((socket, next) => {
+    const username = socket.handshake.auth.username;
+    if (!username) {
+        return next(new Error("invalid username"));
+    }
+    socket.username = username;
+    socketUserMap.set(username, socket.id);
+    next();
+})
+
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
-  
-    socket.on('send_message', (data) => {
-        console.log('Message received:', data);
-        socket.broadcast.emit('receive_message', data);
-    });
-  
-    socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-    });
-});
+    socket.on('join', async (data) => {
+        const roomId = data.id
+        socket.join(roomId)
+        console.log('user has joined.')
+    })
+
+    socket.on('sendMessage', async (data) => {
+        const { messageID, id, sender, message } = data
+        io.to(id).emit('newMessage', { id, data });
+    })
+
+    
+})
 
 server.listen(port, () => {
     console.log(`Server is up and listening on port ${port}`);
@@ -51,22 +68,30 @@ app.post("/api/v1/createAccount", async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-        const results = await supabase.from('users')
+        const { data, error} = await supabase.from('users')
                                        .insert([
                                                 { username: req.body.username, email: req.body.email, date_of_birth: req.body.date_of_birth, password_hash: hashedPassword  },
                                                ])
                                        .select()
-        console.log(results);
+
+                                               
+        if (error) {
+            throw error;
+        }
+
+        user = data[0];
+
         return res.status(200).json({
             status: "success",
-            data: results.data[0]
+            data: {
+                userID: user.user_uuid,
+                username: user.username
+            }
         });
+
+
     } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Username is already in use"
-        });
+        console.error(err)
     }
 });
 
@@ -111,7 +136,8 @@ app.post("/api/v1/logIn", async (req, res) => {
         return res.status(200).json({
             status: "success",
             data: {
-                user: user.user_uuid
+                userID: user.user_uuid,
+                username: user.username
             }
         });
     
@@ -259,64 +285,163 @@ app.post("/api/v1/insertAccommodation", async (req, res) => {
     }
 });
 
-app.get('/api/v1/conversations', async (req, res) => {
-    const userId = req.query.userId;
-  
-    if (!userId) {
-      return res.status(400).json({ error: 'userId query parameter is required' });
-    }
-  
+app.post("/api/v1/validateUsername", async (req, res) => {
+    console.log(req.body);
+    const { recipient } = req.body;
+
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .contains('participants', [userId]);
-  
-      if (error) {
-        throw error;
-      }
-  
-      res.status(200).json({ data });
-    } catch (error) {
-      console.error('Error fetching conversations:', error.message);
-      res.status(500).json({ error: error.message });
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', recipient);
+
+        if (error) {
+            throw error;
+        }
+
+        if (!users || users.length === 0) {
+            return res.status(400).json({
+                status: "error",
+                data: {
+                    isValid: false
+                }
+                
+            });
+        }
+
+
+        const id = socketUserMap.get(recipient);
+    
+    
+        return res.status(200).json({
+            status: "success",
+            data: {
+                isValid: true,
+                socketID: id
+            }
+        });
+    
+
+    } catch (err) {
+        console.error("Caught an error: ", err);
     }
-  });
-  
-  // Create a new conversation
+});
+
+
   app.post('/api/v1/conversations', async (req, res) => {
-    const { userId, username } = req.body;
+    const { sender, recipient } = req.body;
   
     try {
-      const { data, error } = await supabase
-        .from('conversations')
-        .insert([
-          { participants: [userId, username] }
-        ])
-        .select();
-  
-      if (error) {
-        throw error;
-      }
-  
-      const newConversation = data[0];
-  
-      // Emit event to all connected clients who are participants
-      io.emit('newConversation', newConversation);
-  
-      res.status(201).json({ data: newConversation });
+
+        const { data, error } = await supabase
+            .from('conversations')
+            .insert([{ sender: sender, recipient: recipient}])
+            .select();
+        
+        
+        if (error) {
+            throw error;
+        }
+        const conversation = data[0];
+        io.to(socketUserMap.get(sender)).emit('newConversation', conversation);
+        io.to(socketUserMap.get(recipient)).emit('newConversation', conversation);
+
+
+    
+        return res.status(201).json({ message: "success" });
+
     } catch (error) {
-      console.error('Error creating conversation:', error.message);
-      res.status(500).json({ error: error.message });
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
     }
   });
+
+
+  app.post('/api/v1/fetchAllConversations', async (req, res) => {
+    const { sender } = req.body;
   
-  io.on('connection', (socket) => {
-    console.log('a user connected');
-    socket.on('disconnect', () => {
-      console.log('user disconnected');
-    });
+    try {
+
+        const { data, error } = await supabase
+            .from('conversations')
+            .select("*")
+            .or(`sender.eq.${sender},recipient.eq.${sender}`)
+        
+        
+        if (error) {
+            throw error;
+        }
+
+        console.log('Query data:', data);
+        console.log('Query error:', error);
+
+    
+        return res.status(201).json({ message: "success", data: data});
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
   });
+
+  app.post('/api/v1/sendMessage', async (req, res) => {
+    const { id, sender, message } = req.body;
+
+    try {
+
+        const { data, error } = await supabase
+            .from('chat')
+            .insert([{ id: id, sender: sender, message: message}])
+            .select()
+        
+        
+        if (error) {
+            throw error;
+        }
+
+        
+    
+        return res.status(201).json({ message: "success", data: data[0]});
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+
+
+  })
+
+  app.post('/api/v1/getMessages', async (req, res) => {
+    const { id } = req.body;
+
+    try {
+
+        const { data, error } = await supabase
+            .from('chat')
+            .select('*')
+            .eq('id', id)
+        
+        
+        if (error) {
+            throw error;
+        }
+
+        
+    
+        return res.status(201).json({ message: "success", data: data });
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+
+
+  })
+  
     
   /** 
 

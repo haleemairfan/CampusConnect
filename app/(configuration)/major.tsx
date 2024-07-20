@@ -88,7 +88,7 @@ export default function SelectMajor() {
   async function insertMajor() {
     setIsLoading(true)
     try {
-      const results = await fetch("http://192.168.1.98:3000/api/v1/insertMajor", {
+      const results = await fetch("http://172.31.16.94:3000/api/v1/insertMajor", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -4,6 +4,7 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
 import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAppContext } from '../context';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -21,8 +22,9 @@ const Reposts = () => (
   </View>
 );
 
-export default  function ProfilePage() {
-    const { id } = useLocalSearchParams();
+export default function ProfilePage() {
+    const { getGlobalUserId } = useAppContext();
+    const id = getGlobalUserId();
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [followers, setFollowers] = useState(100);  // Example count
     const [following, setFollowing] = useState(150);  // Example count
@@ -32,24 +34,25 @@ export default  function ProfilePage() {
     useEffect(() => {
         async function fetchUserData() {
             try {
-            const userData = await fetch("http://172.31.17.153:3000/api/v1/getUserData", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },  
-                
-                body: JSON.stringify({
-                    id
-                })
+              console.log(id)
+              const userData = await fetch("http://192.168.50.176:3000/api/v1/getUserData", {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },  
+                  
+                  body: JSON.stringify({
+                      id
+                  })
 
-            })
-            const data = await userData.json();
+              })
+              const data = await userData.json();
 
-            if (!userData.ok) {
-                throw new Error(data.message);
-            }
+              if (!userData.ok) {
+                  throw new Error(data.message);
+              }
 
-            setUsername(data.data.username);
+              setUsername(data.data.username);
 
 
             } catch (error) {
