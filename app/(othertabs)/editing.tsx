@@ -1,23 +1,23 @@
-
 import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '@/components/FormField'
 import CustomButton from '@/components/CustomButton'
-import { Redirect, router} from 'expo-router'
+import { Redirect, router, useLocalSearchParams} from 'expo-router'
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import { useUser } from '@/components/UserContext';
 
-const create = () => {
+const editing = () => {
+  const items = useLocalSearchParams()
   const { userId } = useUser();
   const [isLoading, setIsLoading] = useState(false);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [title, setTitle] = useState(items.postTitle);
+  const [body, setBody] = useState(items.postBody);
 
-  async function createPost() {
+  async function editPost() {
     if(!title || !body.trim()) {
       return Alert.alert('Please fill in all the fields.')
     }
@@ -27,13 +27,13 @@ const create = () => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/createPost/${userId.user_uuid}`, {
-        method: 'POST',
+      const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePost/${items.postUuid}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          title,
+          title: title,
           body: trimmedBody,
         }),
       });
@@ -43,16 +43,16 @@ const create = () => {
         throw new Error(data.message);
       }
 
-      Alert.alert('Success', 'Post created successfully!',
+      Alert.alert('Success', 'Post updated successfully!',
         [{ text: 'Continue', onPress: () => router.push('/home')}]);
         setTitle('');
         setBody('');
     } catch (error) {
       console.error('Sign up error:', error);
-      Alert.alert('Error', 'Failed to create post.',
+      Alert.alert('Error', 'Failed to update post.',
         [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
-        setTitle('');
-        setBody('');
+        setTitle(items.postTitle);
+        setBody(items.postBody);
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +62,7 @@ const create = () => {
     <SafeAreaView className = 'bg-primary h-full'>
       <ScrollView className = "px-4 my-6">
         <Text className = "text-white font-bold ml-5" style={{ fontSize: 20 }}>
-            Create a post
+            Edit your post
           </Text>
           <FormField 
           title = "Post Title"
@@ -93,7 +93,7 @@ const create = () => {
 
           <TouchableOpacity
           style={styles.button}
-          onPress={isLoading ? undefined: createPost}
+          onPress={isLoading ? undefined: editPost}
           disabled={isLoading}>
           {isLoading ? (
             <ActivityIndicator size = "small" color = "#d8a838" />
@@ -103,7 +103,7 @@ const create = () => {
             lightColor = "#2A2B2E"
             darkColor = "#F6F0ED"
             type="default">
-            {isLoading ? "Publishing..." : "Publish your post!"}
+            {isLoading ? "Publishing..." : "Edit your post!"}
             </ThemedText>
           )}
         </TouchableOpacity>
@@ -112,7 +112,7 @@ const create = () => {
   )
 }
 
-export default create
+export default editing
 
 const styles = StyleSheet.create({
   buttonText: {

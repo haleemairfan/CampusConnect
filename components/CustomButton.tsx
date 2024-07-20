@@ -2,7 +2,7 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 
-const CustomButton = ({ title, handlePress, containerStyles, textStyles, isLoading, buttonWidth, buttonColor, maxButtonWidth }) => {
+const CustomButton = ({ title, handlePress, containerStyles, textStyles, isLoading, buttonWidth, buttonColor, maxButtonWidth, disabled}) => {
   return (
     <TouchableOpacity 
     onPress={handlePress}
@@ -13,7 +13,7 @@ const CustomButton = ({ title, handlePress, containerStyles, textStyles, isLoadi
       width: buttonWidth,
       maxWidth: maxButtonWidth,
     }}
-    disabled={isLoading}
+    disabled={disabled}
     >
     
     <Text className={textStyles}>
