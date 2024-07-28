@@ -2,29 +2,28 @@ import React, { useState } from 'react';
 import { TextInput, StyleSheet, TouchableOpacity, Alert, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import socket from '../chatClient';
-import { useAppContext } from '../context';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useUser } from '@/components/UserContext';
 
 export default function Login() {
-    const { setGlobalUserId, getGlobalUserId } = useAppContext();
+    const { setUserId } = useUser();
     const [identification, setIdentification] = useState('');
     const [password, setPassword] = useState('');
     const [focusedBox, setFocusedBox] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
     async function handleSignUp() {
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-            //replace with your machine IP address
             const results = await fetch('http://192.168.50.176:3000/api/v1/logIn', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
-                },  
+                },
                 body: JSON.stringify({
-                        identification,
-                        password
+                    identification,
+                    password
                 }),
             });
             const data = await results.json();
@@ -32,26 +31,36 @@ export default function Login() {
             if (!results.ok) {
                 throw new Error(data.message);
             } else {
+                console.log(data.data.username);
                 socket.auth = {
                     username: data.data.username
-                }
+                };
+
                 socket.connect();
+
                 socket.on('connect', () => {
                     console.log('Connected to the server');
                 });
 
-                const id = data.data.userID;
-                setGlobalUserId(id);
-                console.log("UserID set in context:", getGlobalUserId());
+                socket.on('connect_error', (err) => {
+                    console.log('Connection error:', err);
+                });
+
+                socket.on('error', (error) => {
+                    console.error('Socket error:', error);
+                });
+
+                setUserId(data.data);
+
                 setTimeout(() => {
-                    router.push({ pathname: "../(tabs)/profile", params: { id }});
+                    router.push({ pathname: "../(tabs)/profile" });
                 }, 100);
             }
         } catch (error) {
             console.error('Sign up error:', error);
             Alert.alert('Error', 'Failed to sign in. Please try again later.');
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
 

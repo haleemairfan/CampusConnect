@@ -17,7 +17,7 @@ interface Post {
     post_uuid: string;
     user_uuid: string;
     users: {
-      username: string;
+        username: string;
     };
     post_date: string;
     post_time: string;
@@ -28,28 +28,34 @@ interface Post {
     liked: boolean;
     bookmarked: boolean;
     scaleValue: Animated.Value;
-  }
+}
 
 const Home = () => {
     const { userId } = useUser();
     const [posts, setPosts] = useState<Post[]>([]);
-    const [isLoading, setIsLoading] = useState(true)
-    const [refreshing, setRefreshing] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [offset, setOffset] = useState(0);
+    const [limit] = useState(10);
+    const [hasMore, setHasMore] = useState(true);
+    const fetchPosts = async (isInitialLoad = false) => {
+        if (isLoading || (!isInitialLoad && !hasMore)) return;
 
-    async function getAllPosts() {
-        setIsLoading(true)
+        setIsLoading(true);
         try {
-            const results = await fetch('http://192.168.1.98:3000/api/v1/allPosts', {
+
+            const results = await fetch(`http://192.168.50.176:3000/api/v1/memoryBasedCollaborativeFiltering?limit=${limit}&offset=${offset}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                },  
-            })
+                },
+            });
+            
             const data = await results.json();
 
             if (!results.ok) {
                 throw new Error(data.message);
-            } 
+            }
 
             const postsWithState = data.data.posts.map((post: any) => ({
                 ...post,
@@ -58,30 +64,38 @@ const Home = () => {
                 scaleValue: new Animated.Value(1),
             }));
 
-            setPosts(postsWithState);
-
+            setPosts(prevPosts => isInitialLoad ? postsWithState : [...prevPosts, ...postsWithState]);
+            setHasMore(postsWithState.length === limit);
+            setOffset(prevOffset => prevOffset + limit);
         } catch (error) {
             console.error('Unable to get posts', error);
             Alert.alert('Error', 'Failed to get posts. Please try again later.');
-      
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
-        getAllPosts();
-      }, [userId.user_uuid]);
+        fetchPosts(true);
+    }, [userId.user_uuid]);
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await getAllPosts();
+        fetchPosts(true);
         setRefreshing(false);
-    }
+    };
+    const loadMore = async () => {
+        if (hasMore) {
+            await fetchPosts(false);
+        }
+    };
+
+
+
 
     const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
         try {
-            const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${postId}`, {
+            const results = await fetch(`http://172.31.17.153:3000/api/v1/updatePostCount/${postId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -303,41 +317,46 @@ const Home = () => {
     style={styles.container}
     lightColor="#F6F0ED"
     darkColor="#161622">
-       <FlatList
-       data = {posts}
-       keyExtractor={(item) => item.post_uuid}
-       renderItem={renderPost}
-       ListHeaderComponent={() => (
+<FlatList
+    data={posts}
+    keyExtractor={(item) => item.post_uuid}
+    renderItem={renderPost}
+    ListHeaderComponent={() => (
         <View className="my-6 px-4 space-y-6">
             <View className="flex-row justify-between items-center mb-6">
-                    <ThemedText
+                <ThemedText
                     style={styles.welcomeBanner}
                     lightColor="#2A2B2E"
-                    darkColor="#F6F0ED">
-                        Great to have you, {''}
-                        <Text style = {{color: '#d8a838'}}>
-                            {userId.username}
-                        </Text>
-                        !
-                    </ThemedText>
-                    <ImageButton
+                    darkColor="#F6F0ED"
+                >
+                    Great to have you, {''}
+                    <Text style={{ color: '#d8a838' }}>
+                        {userId.username}
+                    </Text>
+                    !
+                </ThemedText>
+                <ImageButton
                     imageSource={icons.direct_messages}
-                    handlePress={() => router.push('/messages')} 
-                    imageContainerStyles = "w-[40px] h-[25px]" 
-                    />
+                    handlePress={() => router.push('/messages')}
+                    imageContainerStyles="w-[40px] h-[25px]"
+                />
             </View>
-            <SearchInput 
-            placeholder = "Search something..."/>
+            <SearchInput
+                placeholder="Search something..."
+            />
         </View>
-       )}
-        ListEmptyComponent = {() => (
-            <EmptyStateHome 
+    )}
+    ListEmptyComponent={() => (
+        <EmptyStateHome
             title="Nothing to see..."
             subtitle="Be the first to upload a post!"
-            />
-        )}
-        refreshControl = {<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
-       />
+        />
+    )}
+    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    onEndReached={loadMore}
+    onEndReachedThreshold={0.5}
+    />
+
     </ThemedView>
   )
 }

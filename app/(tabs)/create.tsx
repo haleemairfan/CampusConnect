@@ -27,7 +27,7 @@ const create = () => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/createPost/${userId.user_uuid}`, {
+      const results = await fetch(`http://192.168.50.176:3000/api/v1/createPost/${userId.user_uuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

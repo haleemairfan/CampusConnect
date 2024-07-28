@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, Alert, View, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useLocalSearchParams } from 'expo-router';
 import { router } from 'expo-router';
+import { useUser } from '@/components/UserContext';
 
 const interests = [
   'Traveling', 'Reading', 'Music', 'Sports', 'Cooking', 
@@ -14,10 +13,10 @@ const interests = [
 ];
 
 export default function SelectInterests() {
-  const { id } = useLocalSearchParams();
+  const { userId } = useUser();
+  const id = userId.user_uuid;
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
-
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -33,50 +32,49 @@ export default function SelectInterests() {
     if (selectedInterests.length === 0) {
       Alert.alert('No Interests Selected', 'Please select at least one interest.');
     } else {
-      // Handle continue action
-      console.log('Selected Interests:', selectedInterests);
+      insertInterests();
     }
   };
 
   const renderInterest = ({ item }: { item: string }) => (
-    <TouchableOpacity
+    <ThemedView
       style={[styles.bubble, selectedInterests.includes(item) ? styles.selectedBubble : null]}
-      onPress={() => toggleInterest(item)}
+      lightColor="#fff" darkColor="#333"
     >
-      <ThemedText style={styles.bubbleText} lightColor="#2A2B2E" darkColor="#F6F0ED">
-        {item}
-      </ThemedText>
-    </TouchableOpacity>
+      <TouchableOpacity onPress={() => toggleInterest(item)}>
+        <ThemedText style={styles.bubbleText} lightColor="#2A2B2E" darkColor="#F6F0ED">
+          {item}
+        </ThemedText>
+      </TouchableOpacity>
+    </ThemedView>
   );
 
   async function insertInterests() {
-    setIsLoading(true)
-      try {
-      const results = await fetch("http://172.31.16.94:3000/api/v1/insertInterests", {
-          method: 'POST',
-          headers: {
+    setIsLoading(true);
+    try {
+      const results = await fetch("http://192.168.50.176:3000/api/v1/insertInterests", {
+        method: 'POST',
+        headers: {
           'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
+        },
+        body: JSON.stringify({
           id,
           selectedInterests,
-          }),
+        }),
       });
-      
+
       const data = await results.json();
 
       if (!results.ok) {
-          throw new Error(data.message);
+        throw new Error(data.message);
       }
-      router.push({ pathname: './profile', params: { id } })
-      } catch (error) {
+      router.push({ pathname: '../(tabs)/profile' });
+    } catch (error) {
       console.error('Invalid interests selected.', error);
-      Alert.alert('Error', 'Invalid interests selected.',
-          [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
-
-      } finally {
-        setIsLoading(false)
-      }
+      Alert.alert('Error', 'Invalid interests selected.', [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -94,16 +92,16 @@ export default function SelectInterests() {
           contentContainerStyle={styles.interestsContainer}
         />
         {selectedInterests.length > 0 && (
-          <TouchableOpacity style={styles.continueButton} onPress={insertInterests} disabled={isLoading}>
-          {isLoading ? (
-                <ActivityIndicator size="small" color="#F6F0ED" />
-              ): (
-                <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
+          <TouchableOpacity style={styles.continueButton} onPress={handleContinue} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#F6F0ED" />
+            ) : (
+              <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
                 Continue
-                </ThemedText>
-              )}
-            </TouchableOpacity>
+              </ThemedText>
             )}
+          </TouchableOpacity>
+        )}
       </View>
     </ThemedView>
   );
@@ -128,7 +126,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bubble: {
-    backgroundColor: "#161622",
     paddingVertical: 10,
     paddingHorizontal: 15,
     margin: 5,

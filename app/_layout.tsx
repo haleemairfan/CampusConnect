@@ -7,7 +7,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppProvider } from './context';
-
+import { UserProvider } from '@/components/UserContext';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -31,7 +31,7 @@ const RootLayout = () => {
 
 
     return (
-      <AppProvider>
+      <UserProvider>
           <Stack>
               <Stack.Screen name = "index" options = {{ headerShown: false}} />
               <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
@@ -40,7 +40,7 @@ const RootLayout = () => {
               <Stack.Screen name = "(othertabs)" options = {{ headerShown: false}} />
               <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />        
           </Stack>
-      </AppProvider>
+      </UserProvider>
     )
 }
 

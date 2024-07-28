@@ -6,13 +6,17 @@ const express = require("express");
 const app = express();
 const { createClient } = require('@supabase/supabase-js'); 
 const bcrypt = require('bcrypt');
+const cors = require("cors");
+const { Server } = require("socket.io");
+const http = require('http');
+
+const port = process.env.PORT || 3000;   
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 app.use(express.json());
-<<<<<<< HEAD
 app.use(cors());
 
 const server = http.createServer(app);
@@ -56,9 +60,6 @@ server.listen(port, () => {
     console.log(`Server is up and listening on port ${port}`);
 });
 
-=======
->>>>>>> d2efe95eb77000f24b5becb6b6336b037807a6df
-
 //// ACCOUNT FUNCTIONS
 // 1. Account Creation
 app.post("/api/v1/createAccount", async (req, res) => {
@@ -70,35 +71,27 @@ app.post("/api/v1/createAccount", async (req, res) => {
                                        .insert([
                                                 { username: req.body.username, email: req.body.email, date_of_birth: req.body.date_of_birth, password_hash: hashedPassword  },
                                                ])
-<<<<<<< HEAD
-                                       .select()
-
-                                               
+                                       .select('*')
+        
         if (error) {
             throw error;
         }
 
-        user = data[0];
-
+        const user = data[0];
         return res.status(200).json({
             status: "success",
             data: {
-                userID: user.user_uuid,
-                username: user.username
+                user_uuid: user.user_uuid,
+                username: user.username,
+                type: "new User"
             }
-=======
-                                       .select('*')
-
-        console.log(results);
-        return res.status(200).json({
-            status: "success",
-            data: results.data
->>>>>>> d2efe95eb77000f24b5becb6b6336b037807a6df
         });
-
-
     } catch (err) {
-        console.error(err)
+        console.error(err);
+        return res.status(400).json({
+            status: "error",
+            message: "Username is already in use"
+        });
     }
 });
 
@@ -141,342 +134,17 @@ app.post("/api/v1/logIn", async (req, res) => {
         return res.status(200).json({
             status: "success",
             data: {
-<<<<<<< HEAD
-                userID: user.user_uuid,
-                username: user.username
-=======
-                user: user,
->>>>>>> d2efe95eb77000f24b5becb6b6336b037807a6df
-            }
-        });
-
-    } catch (err) {
-        console.error("Caught an error: ", err);
-    }
-});
-
-<<<<<<< HEAD
-app.post("/api/v1/getUserData", async(req, res) => {
-    console.log(req.body);
-    const id = req.body.id;
-    try {
-        const { data: users, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('user_uuid', id);        
-        
-        const user = users[0];
-
-        return res.status(200).json({
-            status: "success",
-            data: {
+                user_uuid: user.user_uuid,
                 username: user.username,
-                password: user.password_hash,
-                date_of_birth: user.date_of_birth
-            }
-        })
-    } catch (err) {
-        return res.status(400).json({
-            status: "error",
-            message: "User not found"
-        });
-    }
- });
-
- app.post("/api/v1/insertMajor", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const major = req.body.selectedMajor;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                        .insert([
-                                                { user_uuid: id, major: major },
-                                               ])
-                                        .select();
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-
-app.post("/api/v1/insertUniversity", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const university = req.body.selectedUniversity;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                            .update({university: university})
-                                            .eq('user_uuid', id)
-
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-
-app.post("/api/v1/insertInterests", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const interests = req.body.selectedInterests;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                            .update({interests: interests})
-                                            .eq('user_uuid', id)
-
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-app.post("/api/v1/insertAccommodation", async (req, res) => {
-    console.log(req.body);
-    const id  = req.body.id;
-    const accommodation = req.body.accommodation;
-    try {
-
-        const {data, error} = await supabase.from('configuration')
-                                            .update({campus_accommodation: accommodation})
-                                            .eq('user_uuid', id)
-
-
-        if (error) {
-            throw error;
-        }
-
-        return res.status(200).json({
-            status: "success",
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid input"
-        });
-    }
-});
-
-app.post("/api/v1/validateUsername", async (req, res) => {
-    console.log(req.body);
-    const { recipient } = req.body;
-
-    try {
-        const { data: users, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('username', recipient);
-
-        if (error) {
-            throw error;
-        }
-
-        if (!users || users.length === 0) {
-            return res.status(400).json({
-                status: "error",
-                data: {
-                    isValid: false
-                }
-                
-            });
-        }
-
-
-        const id = socketUserMap.get(recipient);
-    
-    
-        return res.status(200).json({
-            status: "success",
-            data: {
-                isValid: true,
-                socketID: id
+                type: "returning User"
             }
         });
-    
 
     } catch (err) {
         console.error("Caught an error: ", err);
     }
 });
 
-
-  app.post('/api/v1/conversations', async (req, res) => {
-    const { sender, recipient } = req.body;
-  
-    try {
-
-        const { data, error } = await supabase
-            .from('conversations')
-            .insert([{ sender: sender, recipient: recipient}])
-            .select();
-        
-        
-        if (error) {
-            throw error;
-        }
-        const conversation = data[0];
-        io.to(socketUserMap.get(sender)).emit('newConversation', conversation);
-        io.to(socketUserMap.get(recipient)).emit('newConversation', conversation);
-
-
-    
-        return res.status(201).json({ message: "success" });
-
-    } catch (error) {
-
-        console.error('Error creating conversation:', error.message);
-        res.status(500).json({ error: error.message });
-    }
-  });
-
-
-  app.post('/api/v1/fetchAllConversations', async (req, res) => {
-    const { sender } = req.body;
-  
-    try {
-
-        const { data, error } = await supabase
-            .from('conversations')
-            .select("*")
-            .or(`sender.eq.${sender},recipient.eq.${sender}`)
-        
-        
-        if (error) {
-            throw error;
-        }
-
-        console.log('Query data:', data);
-        console.log('Query error:', error);
-
-    
-        return res.status(201).json({ message: "success", data: data});
-
-    } catch (error) {
-
-        console.error('Error creating conversation:', error.message);
-        res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.post('/api/v1/sendMessage', async (req, res) => {
-    const { id, sender, message } = req.body;
-
-    try {
-
-        const { data, error } = await supabase
-            .from('chat')
-            .insert([{ id: id, sender: sender, message: message}])
-            .select()
-        
-        
-        if (error) {
-            throw error;
-        }
-
-        
-    
-        return res.status(201).json({ message: "success", data: data[0]});
-
-    } catch (error) {
-
-        console.error('Error creating conversation:', error.message);
-        res.status(500).json({ error: error.message });
-    }
-
-
-  })
-
-  app.post('/api/v1/getMessages', async (req, res) => {
-    const { id } = req.body;
-
-    try {
-
-        const { data, error } = await supabase
-            .from('chat')
-            .select('*')
-            .eq('id', id)
-        
-        
-        if (error) {
-            throw error;
-        }
-
-        
-    
-        return res.status(201).json({ message: "success", data: data });
-
-    } catch (error) {
-
-        console.error('Error creating conversation:', error.message);
-        res.status(500).json({ error: error.message });
-    }
-
-
-  })
-  
-    
-  /** 
-
-// next() function tells us to send to the next middleware or route handler
-// middleware can be used to send response back to user, like so:
-//  res.status(404).json({
-//      status: "fail",
-//  });
-// drop a request but putting nothing inside
-// ton of 3rd party middleware (e.g. morgan), already configured to call the next function,
-// so there is no need to indicate next
-// express.json() provides the body as a convenient standard javascript object
-
-
-
-
-
-// first parameter is the url in the form: http://localhost:{port_num}/{name of get function}
-// second parameter is the callback function:
-// request is stored in the first variable and response is stored in the second variable
-// This is a restful API. If we console.log("...") here, it will print whatever is in it in the terminal.
-// however, if we do a res.send(...), the browser will show all the restaurants.
-// res.json will put it in a json format for react client that can easily parse the data
-// to change the status on Postman (e.g. 200, 404), change to res.status(...).json(...)
-=======
->>>>>>> d2efe95eb77000f24b5becb6b6336b037807a6df
 // 3. Update Account Details
 app.put("/api/v1/updateAccount/:user_uuid", async (req, res) => {
     console.log(req.body);
@@ -581,7 +249,10 @@ app.get("/api/v1/getUserData/:user_uuid", async (req, res) => {
 
 //// SECTION 2: POSTS TABLE
 // 1. Get All Posts
+// Get All Posts with Pagination
 app.get('/api/v1/allPosts', async (req, res) => {
+    const { limit = 10, offset = 0 } = req.query;
+
     try {
         const { data, error } = await supabase
             .from('posts')
@@ -590,13 +261,13 @@ app.get('/api/v1/allPosts', async (req, res) => {
                 users (username)
                 `)
             .order('post_date', { ascending: false })
-            .order('post_time', { ascending: false });
+            .order('post_time', { ascending: false })
+            .range(offset, offset + limit - 1); // Pagination
 
         if (error) {
             throw error;
         }
 
-        console.log(data);
         res.status(200).json({
             status: 'success',
             results: data.length,
@@ -718,7 +389,7 @@ app.get("/api/v1/getPosts/:user_uuid", async (req, res) => {
 app.put("/api/v1/updatePostCount/:post_uuid", async (req, res) => {
     console.log(req.body);
     try {
-        const { data, error } = await supabase
+        const { data: post, error: postError } = await supabase
             .from('posts')
             .update({
                 like_count: req.body.like_count,
@@ -728,16 +399,61 @@ app.put("/api/v1/updatePostCount/:post_uuid", async (req, res) => {
             })
             .eq('post_uuid', req.params.post_uuid)
             .select('*');
+        
 
-        if (error) {
-            throw error;
+        if (postError) {
+            throw postError;
         }
+        const { data: existingInteractions, error: interactionError } = await supabase
+        .from('user_interactions')
+        .select('*')
+        .eq('user_uuid', req.body.user_uuid)
+        .eq('post_uuid', req.params.post_uuid);
+    
+        if (interactionError) {
+            throw interactionError;
+        }
+        
+        if (existingInteractions.length > 0) {
+            const existingInteraction = existingInteractions[0];
+            const { data: updatedInteraction, error: updateError } = await supabase
+                .from('user_interactions')
+                .update({
+                    liked: req.body.liked,
+                    bookmarked: req.body.bookmarked,
+                })
+                .eq('user_uuid', req.body.user_uuid)
+                .eq('post_uuid', req.params.post_uuid)
+                .select('*');
+
+        if (updateError) {
+            throw updateError;
+        }
+
+
+        } else {
+            const { data: newInteraction, error: insertError } = await supabase
+                .from('user_interactions')
+                .insert({
+                    user_uuid: req.body.user_uuid,
+                    post_uuid: req.params.post_uuid,
+                    liked: req.body.liked,
+                    bookmarked: req.body.bookmarked,
+                })
+                .select('*');
+
+            if (insertError) {
+                throw insertError;
+            }
+
+        }
+        
 
         console.log(data);
         res.status(200).json({
             status: "success",
             data: {
-                posts: data,
+                posts: post,
             },
         });
     } catch (err) {
@@ -898,6 +614,7 @@ app.delete("/api/v1/Posts/:post_uuid", async (req, res) => {
             .from('posts')
             .delete()
             .eq('post_uuid', req.params.post_uuid);
+    
 
         if (error) {
             throw error;
@@ -1433,8 +1150,11 @@ app.post("/api/v1/insertUniversity", async (req, res) => {
     try {
 
         const {data, error} = await supabase.from('configuration')
-                                            .update({university: university})
-                                            .eq('user_uuid', id)
+                                        .insert([
+                                                { user_uuid: id, university: university },
+                                               ])
+                                        .select();
+
 
 
         if (error) {
@@ -1517,10 +1237,8 @@ app.post("/api/v1/insertMajor", async (req, res) => {
     try {
 
         const {data, error} = await supabase.from('configuration')
-                                        .insert([
-                                                { user_uuid: id, major: major },
-                                               ])
-                                        .select();
+                                        .update({ major: major })
+                                        .eq('user_uuid', id);
 
         if (error) {
             throw error;
@@ -1546,10 +1264,8 @@ app.post("/api/v1/insertYear", async (req, res) => {
     try {
 
         const {data, error} = await supabase.from('configuration')
-                                        .insert([
-                                                { user_uuid: id, year_of_study: yearofstudy },
-                                               ])
-                                        .select();
+                                        .update({year_of_study: yearofstudy})
+                                        .eq('user_uuid', id);
 
         if (error) {
             throw error;
@@ -1567,12 +1283,389 @@ app.post("/api/v1/insertYear", async (req, res) => {
     }
 });
 
-const port = process.env.PORT || 3000;   
-// Storing the value of port to the environment variable defined in env, if env not available, 
-// then listen on port 3000
+
+app.post("/api/v1/validateUsername", async (req, res) => {
+    console.log(req.body);
+    const { recipient } = req.body;
+
+    try {
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', recipient);
+
+        if (error) {
+            throw error;
+        }
+
+        if (!users || users.length === 0) {
+            return res.status(400).json({
+                status: "error",
+                data: {
+                    isValid: false
+                }
+                
+            });
+        }
 
 
-app.listen(port, () => {
-    console.log(`Server is up and listening on port ${port}`);
+        const id = socketUserMap.get(recipient);
+    
+    
+        return res.status(200).json({
+            status: "success",
+            data: {
+                isValid: true,
+                socketID: id
+            }
+        });
+    
+
+    } catch (err) {
+        console.error("Caught an error: ", err);
+    }
 });
 
+
+  app.post('/api/v1/conversations', async (req, res) => {
+    const { sender, recipient } = req.body;
+  
+    try {
+
+        const { data, error } = await supabase
+            .from('conversations')
+            .insert([{ sender: sender, recipient: recipient}])
+            .select();
+        
+        
+        if (error) {
+            throw error;
+        }
+        const conversation = data[0];
+        io.to(socketUserMap.get(sender)).emit('newConversation', conversation);
+        io.to(socketUserMap.get(recipient)).emit('newConversation', conversation);
+
+
+    
+        return res.status(201).json({ message: "success" });
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+  });
+
+
+  app.post('/api/v1/fetchAllConversations', async (req, res) => {
+    const { sender } = req.body;
+  
+    try {
+
+        const { data, error } = await supabase
+            .from('conversations')
+            .select("*")
+            .or(`sender.eq.${sender},recipient.eq.${sender}`)
+        
+        
+        if (error) {
+            throw error;
+        }
+
+        console.log('Query data:', data);
+        console.log('Query error:', error);
+
+    
+        return res.status(201).json({ message: "success", data: data});
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/v1/sendMessage', async (req, res) => {
+    const { id, sender, message } = req.body;
+
+    try {
+
+        const { data, error } = await supabase
+            .from('chat')
+            .insert([{ id: id, sender: sender, message: message}])
+            .select()
+        
+        
+        if (error) {
+            throw error;
+        }
+
+        
+    
+        return res.status(201).json({ message: "success", data: data[0]});
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+
+
+  })
+
+  app.post('/api/v1/getMessages', async (req, res) => {
+    const { id } = req.body;
+
+    try {
+
+        const { data, error } = await supabase
+            .from('chat')
+            .select('*')
+            .eq('id', id)
+        
+        
+        if (error) {
+            throw error;
+        }
+
+        
+    
+        return res.status(201).json({ message: "success", data: data });
+
+    } catch (error) {
+
+        console.error('Error creating conversation:', error.message);
+        res.status(500).json({ error: error.message });
+    }
+
+
+  })
+
+  app.post("/api/v1/initialFeed", async (req, res) => {
+    const { user_uuid, limit = 10, offset = 0 } = req.body;
+
+    try {
+        // Fetch user configurations
+        const { data: userConfig, error: configError } = await supabase
+            .from('configuration')
+            .select('*')
+            .eq('user_uuid', user_uuid);
+
+        if (configError) {
+            throw configError;
+        }
+
+        if (!userConfig || userConfig.length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "User configuration not found"
+            });
+        }
+
+        const user = userConfig[0];
+        const { university, major, interests, year_of_study } = user;
+
+        // Fetch users with matching configurations
+        const { data: matchingUsers, error: usersError } = await supabase
+            .from('configuration')
+            .select('user_uuid, university, major, year_of_study, interests')
+            .or(`university.eq.${university},major.eq.${major},year_of_study.eq.${year_of_study}`)
+            .or(interests.map(interest => `interests.ilike.%${interest}%`).join(','));
+
+        if (usersError) {
+            throw usersError;
+        }
+
+        // Calculate scores based on matching configurations
+        const userScores = matchingUsers.map(user => {
+            let score = 0;
+            if (user.university === university) score += 1;
+            if (user.major === major) score += 1;
+            if (user.year_of_study === year_of_study) score += 1;
+            if (user.interests) {
+                const userInterests = user.interests;
+                const commonInterests = interests.filter(interest => userInterests.includes(interest));
+                score += commonInterests.length;
+            }
+            return { user_uuid: user.user_uuid, score };
+        });
+
+        // Sort users by score in descending order
+        userScores.sort((a, b) => b.score - a.score);
+
+        // Fetch posts from matched users with pagination
+        const userUuids = userScores.map(user => user.user_uuid);
+        const { data: posts, error: postsError } = await supabase
+            .from('posts')
+            .select('*')
+            .in('user_uuid', userUuids)
+            .order('user_uuid', { ascending: true }) // To maintain order of prioritized users
+            .order('post_date', { ascending: false }) // To sort posts by date
+            .range(offset, offset + limit - 1); // Pagination
+
+        if (postsError) {
+            throw postsError;
+        }
+
+        let fetchedPosts = posts;
+
+        // If not enough posts, fetch random posts to fill the gap
+        if (fetchedPosts.length < limit) {
+            const remainingLimit = limit - fetchedPosts.length;
+            const { data: randomPosts, error: randomPostsError } = await supabase
+                .from('posts')
+                .select('*')
+                .not('user_uuid', 'in', `(${userUuids.join(',')})`)
+                .order('post_date', { ascending: false }) // To sort posts by date
+                .range(0, remainingLimit - 1); // Fetch the remaining number of posts
+
+            if (randomPostsError) {
+                throw randomPostsError;
+            }
+
+            fetchedPosts = [...fetchedPosts, ...randomPosts];
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: fetchedPosts,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            status: "error",
+            message: err.message,
+        });
+    }
+});
+
+const getUserInteractions = async (user_uuid) => {
+    const { data, error } = await supabase
+        .from('user_interactions')
+        .select('*')
+        .eq('user_uuid', user_uuid)
+        .or('liked.eq.true, bookmarked.eq.true'); // Assuming these are the columns indicating interactions
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+
+const calculateSimilarity = async (userOneUUID, userTwoUUID) => {
+    let userOne = await getUserInteractions(userOneUUID);
+    let userTwo = await getUserInteractions(userTwoUUID);
+
+    let totalInteractions = userOne.length + userTwo.length;
+
+    let userOnePostUUID = new Set(userOne.map(interaction => interaction.post_uuid));
+    let userTwoPostUUID = new Set(userTwo.map(interaction => interaction.post_uuid));
+
+    let commonInteractions = Array.from(userOnePostUUID).filter(post => userTwoPostUUID.has(post));
+
+    return commonInteractions.length / totalInteractions;
+}
+
+
+app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
+    const { user_uuid } = req.body;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = parseInt(req.query.offset) || 0;
+
+    try {
+        // Fetch user configurations
+        const { data: userConfig, error: configError } = await supabase
+            .from('configuration')
+            .select('*')
+            .eq('user_uuid', user_uuid);
+
+        if (configError) {
+            throw configError;
+        }
+
+        if (!userConfig || userConfig.length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "User configuration not found"
+            });
+        }
+
+        const user = userConfig[0];
+        const { university, major, interests, year_of_study } = user;
+
+        // Fetch users with matching configurations
+        const { data: matchingUsers, error: usersError } = await supabase
+            .from('configuration')
+            .select('user_uuid, university, major, year_of_study, interests')
+            .or(`university.eq.${university},major.eq.${major},year_of_study.eq.${year_of_study}`)
+            .or(interests.map(interest => `interests.ilike.%${interest}%`).join(','));
+
+        if (usersError) {
+            throw usersError;
+        }
+
+        const userScores = [];
+        for (const matchingUser of matchingUsers) {
+            let score = 0;
+            if (matchingUser.university === university) score += 1;
+            if (matchingUser.major === major) score += 1;
+            if (matchingUser.year_of_study === year_of_study) score += 1;
+            if (matchingUser.interests) {
+                const userInterests = matchingUser.interests;
+                const commonInterests = interests.filter(interest => userInterests.includes(interest));
+                score += commonInterests.length;
+            }
+            const similarity = await calculateSimilarity(user_uuid, matchingUser.user_uuid);
+            score += similarity;
+            userScores.push({ user_uuid: matchingUser.user_uuid, score });
+        }
+
+        // Sort users by score in descending order
+        userScores.sort((a, b) => b.score - a.score);
+
+        // Fetch posts from matched users with pagination
+        const userUuids = userScores.map(user => user.user_uuid);
+        const { data: posts, error: postsError } = await supabase
+            .from('posts')
+            .select('*')
+            .in('user_uuid', userUuids)
+            .order('user_uuid', { ascending: true }) // To maintain order of prioritized users
+            .order('post_date', { ascending: false }) // To sort posts by date
+            .range(offset, offset + limit - 1); // Pagination
+
+        if (postsError) {
+            throw postsError;
+        }
+
+        let fetchedPosts = posts;
+
+        // If not enough posts, fetch random posts to fill the gap
+        if (fetchedPosts.length < limit) {
+            const remainingLimit = limit - fetchedPosts.length;
+            const { data: randomPosts, error: randomPostsError } = await supabase
+                .from('posts')
+                .select('*')
+                .not('user_uuid', 'in', `(${userUuids.join(',')})`)
+                .order('post_date', { ascending: false }) // To sort posts by date
+                .range(0, remainingLimit - 1); // Fetch the remaining number of posts
+
+            if (randomPostsError) {
+                throw randomPostsError;
+            }
+
+            fetchedPosts = [...fetchedPosts, ...randomPosts];
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: fetchedPosts,
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            status: "error",
+            message: err.message,
+        });
+    }
+});
