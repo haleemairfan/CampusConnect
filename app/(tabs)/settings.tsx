@@ -1,101 +1,127 @@
-
-import { View, Text, FlatList } from 'react-native'
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Redirect, router } from 'expo-router'
 
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
 import { icons } from '../../constants'
 import CustomButton from '@/components/CustomButton';
 
 const settings = () => {
   return (
-    <SafeAreaView className = 'bg-primary h-full'>
-        <FlatList
-          ListHeaderComponent = {() => (
-              <View className = "my-6 px-4">
-                  <View className = "flex-row items-center mb-6">
-                      <Text className = "text-white font-bold ml-5" style={{ fontSize: 20 }}>
-                          Settings
-                      </Text>
-                  </View>
+    <ThemedView
+      style={styles.container}
+      lightColor="#F6F0ED"
+      darkColor="#161622">
+      <View className="my-6 px-4 space-y-6">
+        <ThemedText
+          style={styles.welcomeBanner}
+          lightColor="#2A2B2E"
+          darkColor="#F6F0ED">
+          Settings
+        </ThemedText>
+      </View>
 
-                  <View className = "items-center">
-                    <CustomButton 
-                      title="Change Account Details"
-                      handlePress={() => router.push('/login')}
-                      containerStyles="w-full justify-center mt-3 mb-3"
-                      textStyles="text-lg text-center font-bold"
-                      buttonColor = "#d8a838"
-                      buttonWidth = "90%"
-                      maxButtonWidth = "400" 
-                    />
-                  </View>
+      <ThemedView
+      style={styles.buttonsContainer}
+      lightColor="#F6F0ED"
+      darkColor="#161622">
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/changeaccountdetails')}>
+          <ThemedText
+            style={styles.buttonText}
+            lightColor='#2A2B2E'
+            darkColor='#F6F0ED'
+            type='default'>
+            Change Account Details
+          </ThemedText>
+        </TouchableOpacity>
 
-                  <View className = "items-center">
-                    <CustomButton 
-                      title="Change Password"
-                      handlePress={() => router.push('/interests')}
-                      containerStyles="w-full justify-center mt-3 mb-3"
-                      textStyles="text-lg text-center font-bold"
-                      buttonColor = "#d8a838"
-                      buttonWidth = "90%"
-                      maxButtonWidth = "400" 
-                    />
-                  </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/updateuniversity')}>
+          <ThemedText
+            style={styles.buttonText}
+            lightColor='#2A2B2E'
+            darkColor='#F6F0ED'
+            type='default'>
+            Change Configuration and Interests
+          </ThemedText>
+        </TouchableOpacity>
 
-                  <View className = "items-center">
-                    <CustomButton 
-                      title="Change Display Settings"
-                      handlePress={() => router.push('/login')}
-                      containerStyles="w-full justify-center mt-3 mb-3"
-                      textStyles="text-lg text-center font-bold"
-                      buttonColor = "#d8a838"
-                      buttonWidth = "90%"
-                      maxButtonWidth = "400" 
-                    />
-                  </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/changepassword')}>
+          <ThemedText
+            style={styles.buttonText}
+            lightColor='#2A2B2E'
+            darkColor='#F6F0ED'
+            type='default'>
+            Change Password
+          </ThemedText>
+        </TouchableOpacity>
 
-                  <View className = "items-center">
-                    <CustomButton 
-                      title="Reported Posts"
-                      handlePress={() => router.push('/login')}
-                      containerStyles="w-full justify-center mt-3 mb-3"
-                      textStyles="text-lg text-center font-bold"
-                      buttonColor = "#d8a838"
-                      buttonWidth = "90%"
-                      maxButtonWidth = "400" 
-                    />
-                  </View>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/blockedaccounts')}>
+          <ThemedText
+            style={styles.buttonText}
+            lightColor='#2A2B2E'
+            darkColor='#F6F0ED'
+            type='default'>
+            Blocked Accounts
+          </ThemedText>
+        </TouchableOpacity>
 
-                  <View className = "items-center">
-                    <CustomButton 
-                      title="Reported Comments"
-                      handlePress={() => router.push('/login')}
-                      containerStyles="w-full justify-center mt-3 mb-3"
-                      textStyles="text-lg text-center font-bold"
-                      buttonColor = "#d8a838"
-                      buttonWidth = "90%"
-                      maxButtonWidth = "400" 
-                    />
-                  </View>
-
-                  <View className = "items-center">
-                    <CustomButton 
-                      title="Blocked Accounts"
-                      handlePress={() => router.push('/login')}
-                      containerStyles="w-full justify-center mt-3 mb-3"
-                      textStyles="text-lg text-center font-bold"
-                      buttonColor = "#d8a838"
-                      buttonWidth = "90%"
-                      maxButtonWidth = "400" 
-                    />
-                  </View>
-
-              </View>
-        )}
-      />
-    </SafeAreaView>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push('/deleteaccount')}>
+          <ThemedText
+            style={styles.buttonText}
+            lightColor='#2A2B2E'
+            darkColor='#F6F0ED'
+            type='default'>
+            Delete Account
+          </ThemedText>
+        </TouchableOpacity>
+      </ThemedView>
+    </ThemedView>
   )
 }
 
 export default settings
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: 35,
+  },
+
+  welcomeBanner: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+
+  buttonsContainer: {
+    flex: 1,
+    alignItems: 'center', 
+  },
+
+  button: {
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: 16,
+    backgroundColor: 'transparent',
+    borderColor: '#d8a838',
+    borderWidth: 3,
+    width: '90%', 
+    marginTop: 20,
+    alignItems: 'center', 
+  },
+
+  buttonText: {
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+})

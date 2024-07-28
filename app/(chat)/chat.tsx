@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useAppContext } from '../context';
+import { useAppContext } from './context';
 import { icons } from '../../constants';
 import ImageButton from '../../components/ImageButton';
-import socket from '../chatClient';
+import socket from './chatClient';
 
 type Message = {
     messageID: string;
@@ -42,7 +42,7 @@ const ChatScreen = () => {
     useEffect(() => {
         async function fetchMessages() {
             try {
-                const response = await fetch(`http://192.168.50.176:3000/api/v1/getMessages`, {
+                const response = await fetch(`http://192.168.1.98:3000/api/v1/getMessages`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ const ChatScreen = () => {
         if (newMessage.trim() === '') return;
 
         try {
-            const response = await fetch('http://192.168.50.176:3000/api/v1/sendMessage', {
+            const response = await fetch('http://192.168.1.98:3000/api/v1/sendMessage', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

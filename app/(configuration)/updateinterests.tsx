@@ -34,15 +34,6 @@ export default function SelectInterests() {
     }
   };
 
-  const handleContinue = () => {
-    if (selectedInterests.length === 0) {
-      Alert.alert('No Interests Selected', 'Please select at least one interest.');
-    } else {
-      // Handle continue action
-      console.log('Selected Interests:', selectedInterests);
-    }
-  };
-
   const renderInterest = ({ item }: { item: string }) => (
     <TouchableOpacity
       style={[styles.bubble, selectedInterests.includes(item) ? styles.selectedBubble : null]}
@@ -54,11 +45,11 @@ export default function SelectInterests() {
     </TouchableOpacity>
   );
 
-  async function insertConfigurations() {
+  async function updateConfigurations() {
     setIsLoading(true)
       try {
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/insertConfig/${userId.user_uuid}`, {
-          method: 'POST',
+      const results = await fetch(`http://192.168.1.98:3000/api/v1/updateConfig/${userId.user_uuid}`, {
+          method: 'PUT',
           headers: {
           'Content-Type': 'application/json'
           },
@@ -75,7 +66,7 @@ export default function SelectInterests() {
       if (!results.ok) {
           throw new Error(data.message);
       }
-      router.push({ pathname: '/home' })
+      router.push({ pathname: '/settings' })
       } catch (error) {
       console.error('Invalid configurations selected.', error);
       Alert.alert('Error', 'Invalid configurations selected.',
@@ -101,7 +92,7 @@ export default function SelectInterests() {
           contentContainerStyle={styles.interestsContainer}
         />
         {selectedInterests.length > 0 && (
-          <TouchableOpacity style={styles.continueButton} onPress={insertConfigurations} disabled={isLoading}>
+          <TouchableOpacity style={styles.continueButton} onPress={updateConfigurations} disabled={isLoading}>
           {isLoading ? (
                 <ActivityIndicator size="small" color="#F6F0ED" />
               ): (

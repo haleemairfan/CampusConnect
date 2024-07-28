@@ -134,7 +134,7 @@ export default function SelectMajor() {
             <TouchableOpacity
             style={styles.continueButton}
             onPress={() => router.push({
-              pathname: '/yearofstudy',
+              pathname: '/updateyearofstudy',
               params: { selectedUniversity, selectedMajor }
             })}
             disabled={isLoading}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, Image, RefreshControl, Alert, StyleSheet, Animated, Easing, TouchableOpacity, Touchable } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
@@ -6,15 +7,14 @@ import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-pick
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from 'react-native';
-import { useUser } from '@/components/UserContext';
-import Posts from '../(othertabs)/profileposts';
-import Bookmarks from '../(othertabs)/profilebookmarks';
+import OthersPosts from './othersprofileposts';
+import { useLocalSearchParams } from 'expo-router';
 
 const Tab = createMaterialTopTabNavigator();
 
-export default function ProfilePage() {
+export default function othersProfile() {
     // 1. Use State Hooks
-    const { userId } = useUser();
+    const params = useLocalSearchParams()
     const [profileImage, setProfileImage] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -37,7 +37,7 @@ export default function ProfilePage() {
     async function getUserConfig() {
       setIsLoading(true)
       try {
-          const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
+          const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserConfig/${params.userUuid}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     getUserConfig();
-  }, [userId.user_uuid]);
+  }, [params.userUuid]);
 
 const onRefresh = async () => {
     setRefreshing(true);
@@ -126,7 +126,7 @@ const onRefresh = async () => {
             const imageUrl = uploadData.data.imageUrl;
   
             // Update the profile image URL in the database
-            const updateResponse = await fetch(`http://192.168.1.98:3000/api/v1/updateProfileImage/${userId.user_uuid}`, {
+            const updateResponse = await fetch(`http://192.168.1.98:3000/api/v1/updateProfileImage/${params.userUuid}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -171,7 +171,7 @@ const onRefresh = async () => {
             style={styles.username}
             lightColor="#2A2B2E"
             darkColor="#F6F0ED">
-            {userId.username}
+            {params.username}
           </ThemedText>
           <ThemedText
             style={styles.description}
@@ -189,10 +189,7 @@ const onRefresh = async () => {
       </ThemedView>
       <Tab.Navigator screenOptions = {screenOptions}>
         <Tab.Screen name="Posts"> 
-        {() => <Posts/>}
-        </Tab.Screen>
-        <Tab.Screen name="Bookmarks"> 
-        {() => <Bookmarks/>}
+        {() => <OthersPosts userUuid = {params.userUuid} />}
         </Tab.Screen>
       </Tab.Navigator>
   </ThemedView>

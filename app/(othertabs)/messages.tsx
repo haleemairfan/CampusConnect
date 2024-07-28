@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Modal from 'react-native-modal';
-import { useAppContext } from '../context';
-import socket from '../chatClient';
+import { useAppContext } from '../(chat)/context';
+import socket from '../(chat)/chatClient';
 
 import ImageButton from '../../components/ImageButton';
 import EmptyStateMessages from '@/components/EmptyStateMessages';
@@ -33,7 +33,7 @@ const Messages = () => {
     useEffect(() => {
         async function fetchUserData() {
             try {
-                const userData = await fetch("http://192.168.50.176:3000/api/v1/getUserData", {
+                const userData = await fetch("http://192.168.1.98:3000/api/v1/getUserData", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -63,7 +63,7 @@ const Messages = () => {
 
             console.log(sender); 
             try {
-                const response = await fetch("http://192.168.50.176:3000/api/v1/fetchAllConversations", {
+                const response = await fetch("http://192.168.1.98:3000/api/v1/fetchAllConversations", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -89,7 +89,7 @@ const Messages = () => {
 
     const validateUsername = async () => {
         try {
-            const response = await fetch('http://192.168.50.176:3000/api/v1/validateUsername', {
+            const response = await fetch('http://192.168.1.98:3000/api/v1/validateUsername', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ const Messages = () => {
 
     const createChat = async () => {
         try {
-            const response = await fetch('http://192.168.50.176:3000/api/v1/conversations', {
+            const response = await fetch('http://192.168.1.98:3000/api/v1/conversations', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

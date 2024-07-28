@@ -5,14 +5,16 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
-const years = ['1', '2', '3', '4', 'Alumni', 'Exchanger'];
+const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Alumni', 'Exchanger'];
 
 export default function SelectYear() {
-  const { id } = useLocalSearchParams();
+  const params = useLocalSearchParams();
   const [query, setQuery] = useState('');
   const [filteredYears, setFilteredYears] = useState(years);
   const [selectedYear, setSelectedYear] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const selectedUniversity = params.selectedUniversity;
+  const selectedMajor = params.selectedMajor;
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -40,7 +42,7 @@ export default function SelectYear() {
   async function insertYear() {
     setIsLoading(true)
       try {
-      const results = await fetch("http://172.31.16.94:3000/api/v1/insertYear", {
+      const results = await fetch("http://192.168.1.98:3000/api/v1/insertYear", {
           method: 'POST',
           headers: {
           'Content-Type': 'application/json'
@@ -109,7 +111,14 @@ export default function SelectYear() {
           </ThemedView>
         ) : null}
         {selectedYear ? (
-          <TouchableOpacity style={styles.continueButton} onPress={insertYear} disabled = {isLoading}>
+          <TouchableOpacity
+          style={styles.continueButton}
+          onPress={() => router.push({
+            pathname: '/interests',
+            params: { selectedUniversity, selectedMajor, selectedYear }
+          })}
+          disabled={isLoading}
+        >
             {isLoading ? (
                 <ActivityIndicator size="small" color="#F6F0ED" />
               ): (

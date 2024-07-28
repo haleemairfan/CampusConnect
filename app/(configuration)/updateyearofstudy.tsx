@@ -1,83 +1,36 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { TextInput, StyleSheet, FlatList, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useLocalSearchParams } from 'expo-router';
-import { router } from 'expo-router';
 
+const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Alumni', 'Exchanger'];
 
-const majors = [
-  'Architecture',
-  'Accountancy',
-  'Anthropology',
-  'Biomedical Engineering',
-  'Business Administration',
-  'Business Analytics',
-  'Chemical Engineering',
-  'Chemistry',
-  'Civil Engineering',
-  'Communications and New Media',
-  'Computer Engineering',
-  'Computer Science',
-  'Dentistry',
-  'Data Science and Analytics',
-  'Data Science and Economics',
-  'Economics',
-  'Electrical Engineering',
-  'Environmental Engineering',
-  'Environmental Studies',
-  'Food Science and Technology',
-  'Geography',
-  'Industrial Design',
-  'Industrial Systems Engineering and Management',
-  'Information Security',
-  'Information Systems',
-  'Law',
-  'Life Sciences',
-  'Materials Science and Engineering',
-  'Mathematics',
-  'Mechanical Engineering',
-  'Medicine',
-  'Music',
-  'Nursing',
-  'Pharmacy',
-  'Physics',
-  'Political Science',
-  'Psychology',
-  'Philosophy, Politics, and Economics',
-  'Quantitative Finance',
-  'Real Estate',
-  'Social Work',
-  'Sociology',
-  'Statistics',
-  'Theatre Studies',
-];
-
-
-export default function SelectMajor() {
+export default function SelectYear() {
   const params = useLocalSearchParams();
   const [query, setQuery] = useState('');
-  const [filteredMajors, setFilteredMajors] = useState(majors);
-  const [selectedMajor, setSelectedMajor] = useState('');
+  const [filteredYears, setFilteredYears] = useState(years);
+  const [selectedYear, setSelectedYear] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const selectedUniversity = params.selectedUniversity;
+  const selectedMajor = params.selectedMajor;
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSearch = (text: string) => {
     setQuery(text);
-    const filtered = majors.filter((major) =>
-      major.toLowerCase().includes(text.toLowerCase())
+    const filtered = years.filter((year) =>
+      year.includes(text)
     );
-    setFilteredMajors(filtered);
+    setFilteredYears(filtered);
     setDropdownVisible(true);
   };
 
-  const handleSelectMajor = (major: string) => {
-    setSelectedMajor(major);
-    setQuery(major);
-    setFilteredMajors([]);
+  const handleSelectYear = (year: string) => {
+    setSelectedYear(year);
+    setQuery(year);
+    setFilteredYears([]);
     setDropdownVisible(false);
   };
 
@@ -85,33 +38,60 @@ export default function SelectMajor() {
     setDropdownVisible(false);
     Keyboard.dismiss();
   };
-  
+
+  async function insertYear() {
+    setIsLoading(true)
+      try {
+      const results = await fetch("http://192.168.1.98:3000/api/v1/insertYear", {
+          method: 'POST',
+          headers: {
+          'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+          id,
+          selectedYear,
+          }),
+      });
+      
+      const data = await results.json();
+
+      if (!results.ok) {
+          throw new Error(data.message);
+      }
+      router.push({ pathname: './interests', params: { id } })
+      } catch (error) {
+      console.error('Invalid year of study selected:', error);
+      Alert.alert('Error', 'Invalid Year of Study Selected',
+          [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
+
+      } finally {
+        setIsLoading(false)
+      }
+  }
+
   return (
     <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
       <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#161622">
         <ThemedText style={styles.welcomeText} lightColor="#2A2B2E" darkColor="#F6F0ED">
-          Next, what are you majoring in?
-        </ThemedText>
-        <ThemedText style={styles.label} lightColor="#2A2B2E" darkColor="#F6F0ED">
-          Select your primary major!
+          Now, what year of study are you?
         </ThemedText>
         <ThemedView style={styles.inputContainer} lightColor="#fff" darkColor="#333">
           <TextInput
-            style={[styles.input, selectedMajor ? styles.selectedTextColor: null]}
-            placeholder="Enter your major..."
+            style={[styles.input, selectedYear ? styles.selectedTextColor: null]}
+            placeholder="Enter your year..."
             placeholderTextColor="#7b7b8b"
             value={query}
             onChangeText={handleSearch}
             onFocus={() => setDropdownVisible(true)}
           />
         </ThemedView>
-        {dropdownVisible && filteredMajors.length > 0 && (
+        {dropdownVisible && filteredYears.length > 0 && (
           <ThemedView style={styles.dropdown} lightColor="#fff" darkColor="#333">
             <FlatList
-              data={filteredMajors}
+              data={filteredYears}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handleSelectMajor(item)}>
+                <TouchableOpacity onPress={() => handleSelectYear(item)}>
                   <ThemedText style={styles.dropdownItem} lightColor="#2A2B2E" darkColor="#F6F0ED">
                     {item}
                   </ThemedText>
@@ -120,26 +100,26 @@ export default function SelectMajor() {
             />
           </ThemedView>
         )}
-        {selectedMajor ? (
+        {selectedYear ? (
           <ThemedView style={styles.selectedContainer} lightColor="#F6F0ED" darkColor="#161622">
             <ThemedText style={styles.selectedLabel} lightColor="#2A2B2E" darkColor="#F6F0ED">
-              Selected Major:
+              Selected Year:
             </ThemedText>
-            <ThemedText style={styles.selectedMajor} lightColor="#2A2B2E" darkColor="#F6F0ED">
-              {selectedMajor}
+            <ThemedText style={styles.selectedYear} lightColor="#2A2B2E" darkColor="#F6F0ED">
+              {selectedYear}
             </ThemedText>
           </ThemedView>
         ) : null}
-            {selectedMajor ? (
-            <TouchableOpacity
-            style={styles.continueButton}
-            onPress={() => router.push({
-              pathname: '/yearofstudy',
-              params: { selectedUniversity, selectedMajor }
-            })}
-            disabled={isLoading}
-          >
-              {isLoading ? (
+        {selectedYear ? (
+          <TouchableOpacity
+          style={styles.continueButton}
+          onPress={() => router.push({
+            pathname: '/updateinterests',
+            params: { selectedUniversity, selectedMajor, selectedYear }
+          })}
+          disabled={isLoading}
+        >
+            {isLoading ? (
                 <ActivityIndicator size="small" color="#F6F0ED" />
               ): (
                 <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
@@ -207,11 +187,10 @@ const styles = StyleSheet.create({
   selectedLabel: {
     fontSize: 16,
   },
-  selectedMajor: {
+  selectedYear: {
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 5,
-    textAlign: "center"
   },
   continueButton: {
     position: 'absolute',

@@ -49,7 +49,7 @@ export default function SelectUniversity() {
         <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
         <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#161622">
             <ThemedText style={styles.welcomeText} lightColor="#2A2B2E" darkColor="#F6F0ED">
-            Welcome, let's get to know you a bit more!
+            Let's update your configuration!
             </ThemedText>
             <ThemedText style={styles.label} lightColor="#2A2B2E" darkColor="#F6F0ED">
             First, what's your university?
@@ -93,7 +93,7 @@ export default function SelectUniversity() {
             <TouchableOpacity
             style={styles.continueButton}
             onPress={() => router.push({
-              pathname: '/major',
+              pathname: '/updatemajor',
               params: { selectedUniversity }
             })}
             disabled={isLoading}

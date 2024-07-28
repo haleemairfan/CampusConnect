@@ -12,22 +12,27 @@ import SearchInput from '@/components/SearchInput'
 import EmptyStateHome from '@/components/EmptyStateHome'
 import { useLocalSearchParams } from 'expo-router'
 import { useUser } from '@/components/UserContext'
+import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants'
 
 interface Post {
-  post_uuid: string;
-  users: {
-    username: string;
-  };
-  post_date: string;
-  post_time: string;
-  post_title: string;
-  post_body: string;
-  like_count: number;
-  bookmark_count: number;
-  liked: boolean;
-  bookmarked: boolean;
-  scaleValue: Animated.Value;
+    post_uuid: string;
+    user_uuid: string;
+    users: {
+      username: string;
+      user_flairs: string;
+    };
+    post_date: string;
+    post_time: string;
+    post_title: string;
+    post_body: string;
+    like_count: number;
+    bookmark_count: number;
+    liked: boolean;
+    bookmarked: boolean;
+    comment_count: number;
+    tags: string;
+    scaleValue: Animated.Value;
 }
 
 const Search = () => {
@@ -40,7 +45,18 @@ const Search = () => {
   async function getSearchedPosts() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/searchedPosts/${query}`, {
+        let lowercaseQuery = '';
+            if (typeof query === 'string') {
+                lowercaseQuery = query.toLowerCase();
+            } else if (Array.isArray(query)) {
+                // Handle case where query is an array of strings
+                lowercaseQuery = query.map(item => item.toLowerCase()).join(' '); // Join array elements into a single string
+            } else {
+                // Handle case where query is undefined
+                lowercaseQuery = '';
+            }
+        
+        const results = await fetch(`http://192.168.1.98:3000/api/v1/searchedPosts/${encodeURIComponent(lowercaseQuery)}/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -80,7 +96,7 @@ useEffect(() => {
     setRefreshing(false);
 }
 
-  const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number) => {
+const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
         const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
@@ -88,9 +104,10 @@ useEffect(() => {
                 'Content-Type': 'application/json'
             },  
             body: JSON.stringify({
-                postId: postId,
                 like_count: likeCount,
                 bookmark_count: bookmarkCount,
+                liked: liked,
+                bookmarked: bookmarked
             }),
         });
         const data = await results.json();
@@ -102,34 +119,41 @@ useEffect(() => {
     }
 }
 
-  const handleLikePress = useCallback(async (postId: string) => {
-    const post = posts.find(post => post.post_uuid === postId);
-    if (post) {
-        const updatedLikeCount = post.liked ? post.like_count - 1: post.like_count + 1;
+const handleLikePress = useCallback(async (postId: string) => {
+    const postIndex = posts.findIndex(post => post.post_uuid === postId);
+    if (postIndex !== -1) {
+        const updatedPosts = [...posts];
 
-        setPosts((prevPosts) =>
-            prevPosts.map((post) =>
-                post.post_uuid === postId
-                    ? {...post, liked: !post.liked, like_count: updatedLikeCount, scaleValue: new Animated.Value(1) }
-                    : post
-            )
-        );
+        updatedPosts[postIndex] = {
+            ...updatedPosts[postIndex],
+            liked: !updatedPosts[postIndex].liked,
+            like_count: updatedPosts[postIndex].liked ? updatedPosts[postIndex].like_count - 1 : updatedPosts[postIndex].like_count + 1,
+            scaleValue: new Animated.Value(1),
+        }
+
+        setPosts(updatedPosts);
 
     try {
-        await updatePostCount(postId, updatedLikeCount, post.bookmark_count);
+        await updatePostCount(
+            postId, 
+            updatedPosts[postIndex].like_count, 
+            updatedPosts[postIndex].bookmark_count, 
+            updatedPosts[postIndex].liked,
+            updatedPosts[postIndex].bookmarked
+        );
     } catch (error) {
         console.error('Unable to update like count', error);
     }
 
     Animated.sequence([
-        Animated.timing(post.scaleValue, {
+        Animated.timing(updatedPosts[postIndex].scaleValue, {
             toValue: 1.2,
             duration: 75,
             easing: Easing.ease,
             useNativeDriver: true,
         }),
 
-    Animated.timing(post.scaleValue, {
+    Animated.timing(updatedPosts[postIndex].scaleValue, {
         toValue: 1,
         duration: 75,
         easing: Easing.ease,
@@ -141,33 +165,40 @@ useEffect(() => {
 
 
 const handleBookmarkPress = useCallback(async (postId: string) => {
-    const post = posts.find(post => post.post_uuid === postId);
-    if (post) {
-        const updatedBookmarkCount = post.bookmarked ? post.bookmark_count - 1: post.bookmark_count + 1;
+    const postIndex = posts.findIndex(post => post.post_uuid === postId);
+    if (postIndex !== -1) {
+        const updatedPosts = [...posts];
 
-        setPosts((prevPosts) =>
-            prevPosts.map((post) =>
-                post.post_uuid === postId
-                    ? {...post, bookmarked: !post.bookmarked, bookmark_count: updatedBookmarkCount, scaleValue: new Animated.Value(1) }
-                    : post
-            )
-        );
+        updatedPosts[postIndex] = {
+            ...updatedPosts[postIndex],
+            bookmarked: !updatedPosts[postIndex].bookmarked,
+            bookmark_count: updatedPosts[postIndex].bookmarked ? updatedPosts[postIndex].bookmark_count - 1 : updatedPosts[postIndex].bookmark_count + 1,
+            scaleValue: new Animated.Value(1),
+        }
+
+        setPosts(updatedPosts);
 
     try {
-        await updatePostCount(postId, post.like_count, updatedBookmarkCount);
+        await updatePostCount(
+            postId, 
+            updatedPosts[postIndex].like_count, 
+            updatedPosts[postIndex].bookmark_count, 
+            updatedPosts[postIndex].liked,
+            updatedPosts[postIndex].bookmarked
+        );
     } catch (error) {
         console.error('Unable to update bookmark count', error);
     }
 
     Animated.sequence([
-        Animated.timing(post.scaleValue, {
+        Animated.timing(updatedPosts[postIndex].scaleValue, {
             toValue: 1.2,
             duration: 75,
             easing: Easing.ease,
             useNativeDriver: true,
         }),
 
-    Animated.timing(post.scaleValue, {
+    Animated.timing(updatedPosts[postIndex].scaleValue, {
         toValue: 1,
         duration: 75,
         easing: Easing.ease,
@@ -203,75 +234,169 @@ const formatTimeDifference = (postDate, postTime) => {
     }
 }
 
-const renderPost = ({ item }: {item: Post}) => (
+const renderPost = ({ item }: {item: Post}) => {
+    const handleNavigatetoComments = () => {
+        router.push({
+            pathname: '/comments',
+            params: {
+                postTitle: item.post_title,
+                postBody: item.post_body,
+                postUuid: item.post_uuid
+            }
+        });
+    };
+  
+    const handleFlairPress = (flair: string ) => {
+        router.push(`/search/${flair}`)
+    }
+  
+  
+    let userFlairs = item.users.user_flairs
+    ? item.users.user_flairs
+        .replace(/^\{|\}$/g, '') // Remove curly brackets at the start and end
+        .split(',') // Split the string by commas
+        .map((flair) => flair.replace(/"/g, '').trim()) // Remove any double quotes and trim whitespace
+    : [];
+  
+  let tags = item.tags
+    ? item.tags
+        .replace(/^\{|\}$/g, '') // Remove curly brackets at the start and end
+        .split(',') // Split the string by commas
+        .map((tag) => tag.replace(/"/g, '').trim()) // Remove any double quotes and trim whitespace
+    : [];
+    
+    let userUuid = item.user_uuid
+    let username = item.users.username
+
+  return (
     <ThemedView
     style={styles.postContainer}
     lightColor = "#F6F0ED"
     darkColor= "#161622">
-        <ThemedText
-        style = {styles.postUsername}
-        lightColor = '#2A2B2E'
-        darkColor= '#F6F0ED'>
-            {item.users.username} {' '}
-            <ThemedText
-            style = {styles.postTime}
-            lightColor = '#2A2B2E'
-            darkColor= '#F6F0ED'>
-            {formatTimeDifference(item.post_date, item.post_time)}
-            </ThemedText>
-        </ThemedText>
-
+        <View style = {styles.headerRow}>
+            <View style = {styles.usernameTimeContainer}>
+                <TouchableOpacity
+                        style={styles.postUsernameContainer}
+                        onPress={() => {
+                            if (userId.user_uuid === item.user_uuid) {
+                                router.push({ pathname: '/profile' });
+                            } else {
+                                router.push({ pathname: '/othersprofiles', params: { userUuid, username } });
+                            }
+                        }}>
+                        <Text
+                            style={styles.postUsername}
+                            lightColor='#2A2B2E'
+                            darkColor='#F6F0ED'>
+                            {item.users.username} {' '}
+                        </Text>
+                    </TouchableOpacity>
+  
+                <ThemedText
+                    style = {styles.postTime}
+                    lightColor = '#2A2B2E'
+                    darkColor= '#F6F0ED'>
+                    {formatTimeDifference(item.post_date, item.post_time)}
+                </ThemedText>
+            </View>
+            <DropDownMenu 
+            postUserId = {item.user_uuid}
+            currentUserId = {userId.user_uuid}
+            postUuid = {item.post_uuid}
+            postTitle = {item.post_title}
+            postBody = {item.post_body}
+            postTags = {item.tags} />
+        </View>
+  
+        <View style={styles.flairsContainer}>
+            {userFlairs.map((flair, index) => (
+            <TouchableOpacity
+                key={index}
+                style={[styles.flairBox, { backgroundColor: getBackgroundColorForFlair(index) }]}
+                onPress={() => handleFlairPress(flair)}>
+                <Text style={[styles.flairText, {color: getTextColorForFlair(index) }]}>{flair}</Text>
+            </TouchableOpacity>
+            ))}
+        </View>
+  
         <ThemedText
         style = {styles.postTitle}
         lightColor = '#2A2B2E'
         darkColor= '#F6F0ED'>
             {item.post_title}
         </ThemedText>
-
+  
         <ThemedText
         style = {styles.postBody}
         lightColor = '#2A2B2E'
         darkColor= '#F6F0ED'>
             {item.post_body}
         </ThemedText>
-
-        <ThemedView
-        style={styles.iconsContainer}
-        lightColor = "#F6F0ED"
-        darkColor= "#161622">
-
-            <TouchableOpacity onPress = {() => handleLikePress(item.post_uuid)}>
-                <Animated.Image
-                    source = {item.liked ? icons.new_like_icon : icons.like_icon}
-                    className = "w-[30px] h-[30px] mt-3"
-                    resizeMode = 'contain'
-                    style = {[styles.icon, {transform: [{ scale: item.scaleValue }] }]} />
+  
+        <View style={styles.tagsContainer}>
+            {tags.map((tags, index) => (
+            <TouchableOpacity
+                key={index}
+                style={[styles.tagBox]}
+                onPress={() => handleFlairPress(tags)}>
+                <Text style={[styles.tagText]}>#{tags}</Text>
             </TouchableOpacity>
-
-            <ThemedText
-            style = {styles.postCount}
-            lightColor = '#2A2B2E'
-            darkColor= '#F6F0ED'>
-                {item.like_count}
-            </ThemedText>
-
-            <TouchableOpacity onPress = {() => handleBookmarkPress(item.post_uuid)}>
-                <Animated.Image
-                    source = {item.bookmarked ? icons.new_bookmark_icon : icons.bookmark_icon}
+            ))}
+        </View>
+  
+        <View style = {styles.bottomRow}>
+            <TouchableOpacity onPress = {handleNavigatetoComments} style = {styles.commentsContainer}>
+                <Image 
+                    source = {icons.comment_icon}
                     className = "w-[30px] h-[30px] mt-3"
-                    resizeMode = 'contain'
-                    style = {[styles.icon, {transform: [{ scale: item.scaleValue }] }]} />
+                    resizeMode = "contain" />
+                <ThemedText style = {styles.commentText}>
+                {item.comment_count === 1 
+                    ? `${item.comment_count} comment` 
+                    : `${item.comment_count} comments`}
+  
+                </ThemedText>
             </TouchableOpacity>
-            
-            <ThemedText
-            style = {styles.postCount}
-            lightColor = '#2A2B2E'
-            darkColor= '#F6F0ED'>
-                {item.bookmark_count}
-            </ThemedText>
-        </ThemedView>
+  
+            <ThemedView
+            style={styles.iconsContainer}
+            lightColor = "#F6F0ED"
+            darkColor= "#161622">
+  
+                <TouchableOpacity onPress = {() => handleLikePress(item.post_uuid)}>
+                    <Animated.Image
+                        source = {item.liked ? icons.new_like_icon : icons.like_icon}
+                        className = "w-[30px] h-[30px] mt-3"
+                        resizeMode = 'contain'
+                        style = {[styles.icon, {transform: [{ scale: item.scaleValue }] }]} />
+                </TouchableOpacity>
+  
+                <ThemedText
+                style = {styles.postCount}
+                lightColor = '#2A2B2E'
+                darkColor= '#F6F0ED'>
+                    {item.like_count}
+                </ThemedText>
+  
+                <TouchableOpacity onPress = {() => handleBookmarkPress(item.post_uuid)}>
+                    <Animated.Image
+                        source = {item.bookmarked ? icons.new_bookmark_icon : icons.bookmark_icon}
+                        className = "w-[30px] h-[30px] mt-3"
+                        resizeMode = 'contain'
+                        style = {[styles.icon, {transform: [{ scale: item.scaleValue }] }]} />
+                </TouchableOpacity>
+                
+                <ThemedText
+                style = {styles.postCount}
+                lightColor = '#2A2B2E'
+                darkColor= '#F6F0ED'>
+                    {item.bookmark_count}
+                </ThemedText>
+            </ThemedView>
+        </View>
+  
     </ThemedView>
-)
+  )};
 
 return (
   <ThemedView
@@ -303,7 +428,7 @@ return (
       ListEmptyComponent = {() => (
           <EmptyStateHome 
           title="Nothing to see..."
-          subtitle="Be the first to upload a post!"
+          subtitle="Try searching something else!"
           />
       )}
       refreshControl = {<RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>}
@@ -313,6 +438,16 @@ return (
 }
 
 export default Search
+
+const getBackgroundColorForFlair = (index: number) => {
+    const backgroundColors = ['#B4C6E7', '#FFE699', '#FF7C80']; 
+    return backgroundColors[index] || '#D3D3D3'; 
+  };
+  
+  const getTextColorForFlair = (index: number) => {
+    const textColors = ['#08204D', '#473C38', '#4D080A']; 
+    return textColors[index] || '#000000'; 
+  };
 
 const styles = StyleSheet.create({
   container: {
@@ -332,54 +467,124 @@ const styles = StyleSheet.create({
   },
 
   postContainer: {
-      padding: 15,
-      marginBottom: 16,
-      marginLeft: 10,
-      borderRadius: 8,
-      borderWidth: 2,
-      borderColor: '#7b7b8b',
-      width: 340,
-      alignItems: 'flex-start',
-  },
+    padding: 15,
+    marginBottom: 16,
+    marginLeft: 10,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#7b7b8b',
+    width: 340,
+    alignItems: 'flex-start',
+},
 
-  iconsContainer: {
-      backgroundColor: "transparent",
-      flexDirection: 'row',
-      alignItems: 'center',
-      width: 330,
-      justifyContent: 'flex-end',
-  },
+headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+},
 
-  icon: {
-      marginRight: 10,
-  },
+bottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+},
 
-  postUsername: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      marginBottom: 8
-  },
+usernameTimeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+},
 
-  postTime: {
-      fontSize: 14,
-      marginBottom: 8,
-      color: '#7b7b8b',
-  },
+commentsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+},
 
-  postTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 8,
-  },
+commentText: {
+    fontSize: 14,
+    marginTop: 11,
+    marginLeft: 8,
+    color: '#7b7b8b',
+},
 
-  postBody: {
-      fontSize: 14,
-  },
+iconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 77,
+},
 
-  postCount: {
-      marginTop: 10,
-      fontSize: 14,
-      marginRight: 20,
-      alignItems: 'center',
-  }
+icon: {
+    marginRight: 9,
+},
+
+postUsername: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: '#FFF',
+},
+
+postTime: {
+    fontSize: 14,
+    marginBottom: 8,
+    color: '#7b7b8b',
+},
+
+postTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+},
+
+postBody: {
+    fontSize: 15,
+},
+
+postCount: {
+    marginTop: 10,
+    fontSize: 14,
+    paddingRight: 14,
+    alignItems: 'center',
+},
+
+flairsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+},
+
+flairBox: {
+padding: 5,
+paddingLeft: 10,
+paddingRight: 10, 
+borderRadius: 10,
+marginRight: 5,
+marginBottom: 25,
+},
+    
+flairText: {
+fontSize: 11,
+fontWeight: 'bold',
+},
+
+tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+},
+
+tagBox: {
+padding: 5,
+marginRight: 5,
+marginTop: 20,
+},
+    
+tagText: {
+fontSize: 12,
+color: '#D0CECE',
+},
+
+postUsernameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+},
 })

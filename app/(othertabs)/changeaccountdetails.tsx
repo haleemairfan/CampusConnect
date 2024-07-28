@@ -6,24 +6,49 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
 
-// abstract out the http
 
-export default function AccountCreation() {
+export default function changeAccountDetails() {
+  const { userId } = useUser();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [date_of_birth, setDateOfBirth] = useState('');
   const [showPicker, setShowPicker] = useState(false);
   const [date, setDate] = useState(new Date());
-  const [password, setPassword] = useState('');
 
   const [focusedBox, setFocusedBox] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { setUserId } = useUser();
-
   const toggleDatePicker = () => {
     setShowPicker(!showPicker);
   };
+
+  async function getAccountDetails() {
+    try {
+        const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserData/${userId.user_uuid}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },  
+        })
+        const data = await results.json();
+
+        setUsername(data.data.posts[0].username)
+        setEmail(data.data.posts[0].email)
+        setDateOfBirth(data.data.posts[0].date_of_birth)
+
+        if (!results.ok) {
+            throw new Error(data.message);
+        } 
+
+    } catch (error) {
+        console.error('Unable to get configuration details', error);
+        Alert.alert('Error', 'Failed to get configuration details. Please try again later.');
+    } 
+}
+
+useEffect(() => {
+  getAccountDetails();
+}, [userId.user_uuid]);
 
   const onChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     if (event.type === 'set' && selectedDate) {
@@ -36,49 +61,41 @@ export default function AccountCreation() {
     }
   };
 
-  async function handleSignUp() {
+  async function updateAccountDetails() {
     setIsLoading(true);
     try {
       //replace with your machine IP address
-      const results = await fetch('http://192.168.1.98:3000/api/v1/createAccount', {
-        method: 'POST',
+      const results = await fetch(`http://192.168.1.98:3000/api/v1/updateAccount/${userId.user_uuid}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          username,
-          email,
-          date_of_birth,
-          password,
+          username: username,
+          email: email,
+          date_of_birth: date_of_birth,
         }),
       });
       const data = await results.json();
 
       if (!results.ok) {
         throw new Error(data.message);
-      } else {
-        const id = data.data[0];
-        setUserId(id)
-        Alert.alert('Success', 'Account created successfully',
-          [{ text: 'Continue', onPress: () => router.push('/university')}]);
+      }
+
+      Alert.alert('Success', 'User information updated successfully!',
+        [{ text: 'Continue', onPress: () => router.push({
+            pathname: '/settings',
+            })
+        }]);
         setUsername('');
         setEmail('');
         setDateOfBirth('');
-        setPassword('');
-      }
-
     } catch (error) {
-      console.error('Sign up error:', error);
-      Alert.alert('Error', 'Failed to create account',
-        [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
-      setUsername('');
-      setEmail('');
-      setDateOfBirth('');
-      setPassword('');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      Alert.alert('Error', 'Failed to update user information.')
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   return (
     <TouchableWithoutFeedback
@@ -155,27 +172,9 @@ export default function AccountCreation() {
             />
         </Pressable>
 
-        <ThemedText
-          style={styles.text}
-          lightColor="#2A2B2E"
-          darkColor="#F6F0ED">
-          Password:
-        </ThemedText>
-
-        <TextInput
-          style={[styles.input, focusedBox === 'password' && styles.inputFocused]}
-          placeholder="Enter a strong password..."
-          placeholderTextColor="#7b7b8b"
-          value={password}
-          secureTextEntry
-          onChangeText={setPassword}
-          onFocus = {() => setFocusedBox('password')}
-          onBlur={() => setFocusedBox(null)}
-        />
-
         <TouchableOpacity
           style={styles.button}
-          onPress={isLoading ? undefined: handleSignUp}
+          onPress={isLoading ? undefined: updateAccountDetails}
           disabled={isLoading}>
           {isLoading ? (
             <ActivityIndicator size = "small" color = "#d8a838" />
@@ -185,7 +184,7 @@ export default function AccountCreation() {
             lightColor = "#2A2B2E"
             darkColor = "#F6F0ED"
             type="default">
-            {isLoading ? "Creating..." : "Create your account!"}
+            {isLoading ? "Updating..." : "Update your account!"}
             </ThemedText>
           )}
         </TouchableOpacity>
