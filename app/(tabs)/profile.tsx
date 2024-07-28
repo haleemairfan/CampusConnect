@@ -1,38 +1,80 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, FlatList, Image, RefreshControl, Alert, StyleSheet, Animated, Easing, TouchableOpacity, Touchable } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { launchImageLibrary, ImageLibraryOptions } from 'react-native-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { ThemedText } from '@/components/ThemedText';
+import { ThemedView } from '@/components/ThemedView';
+import { useColorScheme } from 'react-native';
 import { useUser } from '@/components/UserContext';
+import Posts from '../(othertabs)/profileposts';
+import Bookmarks from '../(othertabs)/profilebookmarks';
 
 const Tab = createMaterialTopTabNavigator();
 
-const Posts = () => (
-  <View style={styles.tabContainer}>
-    <Text>Posts</Text>
-    {/* Render posts here */}
-  </View>
-);
-
-const Reposts = () => (
-  <View style={styles.tabContainer}>
-    <Text>Reposts</Text>
-    {/* Render reposts here */}
-  </View>
-);
-
 export default function ProfilePage() {
+    // 1. Use State Hooks
     const { userId } = useUser();
-    const [profileImage, setProfileImage] = useState<string | null>(null);
-    const [followers, setFollowers] = useState(100);  // Example count
-    const [following, setFollowing] = useState(150);  // Example count
-    const [username, setUsername] = useState("");
+    const [profileImage, setProfileImage] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [major, setMajor] = useState('');
+    const [university, setUniversity] = useState('');
+    const [yearOfStudy, setYearOfStudy] = useState('');
+    const [interests, setInterests] = useState([])
+
+    // 2. Colour Scheme for Tab Navigation Bar
+    const colorScheme = useColorScheme();
+    const screenOptions = {
+      tabBarStyle: {
+        backgroundColor: colorScheme === 'dark' ? '#161622': '#FFFFFF',
+      },
+      tabBarActiveTintColor: colorScheme === 'dark' ? '#F6F0ED': '#2A2B2E',
+      tabBarInactiveTintColor: '#7b7b8b'
+    };
   
+    // 3. Get User Flairs + Interests Details
+    async function getUserConfig() {
+      setIsLoading(true)
+      try {
+          const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
+              method: 'GET',
+              headers: {
+                  'Content-Type': 'application/json'
+              },  
+          })
+          const data = await results.json();
+          
+          setMajor(data.data.major)
+          setUniversity(data.data.university)
+          setYearOfStudy(data.data.year_of_study)
+          setInterests(data.data.interests)
 
-    useEffect(() => { setUsername(userId.username); });
+          if (!results.ok) {
+              throw new Error(data.message);
+          } 
+  
+      } catch (error) {
+          console.error('Unable to get configuration details', error);
+          Alert.alert('Error', 'Failed to get configuration details. Please try again later.');
+    
+      } finally {
+          setIsLoading(false)
+      }
+  }
 
+  useEffect(() => {
+    getUserConfig();
+  }, [userId.user_uuid]);
 
-  const pickImage = () => {
+const onRefresh = async () => {
+    setRefreshing(true);
+    await getUserConfig();
+    setRefreshing(false);
+}
+
+  // 4. Picking Profile Picture Image
+  async function pickImage() {
     const options: ImageLibraryOptions = {
       mediaType: 'photo',
       maxWidth: 300,
@@ -40,7 +82,7 @@ export default function ProfilePage() {
       quality: 1,
     };
 
-    launchImageLibrary(options, (response) => {
+    launchImageLibrary(options, async (response) => {
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.errorCode) {
@@ -48,43 +90,118 @@ export default function ProfilePage() {
       } else if (response.assets && response.assets.length > 0) {
         const uri = response.assets[0].uri;
         if (uri) {
-          setProfileImage(uri);
-        } else {
-          setProfileImage(null);
+          try {
+            // Get the file extension from URI
+            const fileExt = uri.split('.').pop();
+            const fileName = `profile_picture.${fileExt}`;
+  
+            // Fetch the image file as a blob
+            const fetchResponse = await fetch(uri);
+            const blob = await fetchResponse.blob();
+            
+            // Create a FormData object to send the image file
+            const formData = new FormData();
+            formData.append('file', {
+              uri,
+              name: fileName,
+              type: fetchResponse.headers.get('content-type') || 'image/jpeg',
+            });
+  
+            // Upload the image to your backend
+            const uploadResponse = await fetch(`http://192.168.1.98:3000/api/v1/uploadImage`, {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            });
+            
+            const uploadData = await uploadResponse.json();
+  
+            if (!uploadResponse.ok) {
+              throw new Error(uploadData.message);
+            }
+  
+            // Extract the image URL from the response
+            const imageUrl = uploadData.data.imageUrl;
+  
+            // Update the profile image URL in the database
+            const updateResponse = await fetch(`http://192.168.1.98:3000/api/v1/updateProfileImage/${userId.user_uuid}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ profile_image_url: imageUrl }),
+            });
+  
+            const updateData = await updateResponse.json();
+  
+            if (!updateResponse.ok) {
+              throw new Error(updateData.message);
+            }
+  
+            // Update local state with the new profile image URL
+            setProfileImage(imageUrl);
+  
+          } catch (error) {
+            console.error('Error uploading image:', error);
+            Alert.alert('Error', 'Failed to upload image. Please try again.');
+          }
         }
       }
     });
-  };
+  }
 
   return (
-  <SafeAreaView className = "bg-primary h-full">
-    <View style={styles.container}>
-      <View style={styles.profileContainer}>
+    <ThemedView
+    style={styles.container}
+    lightColor="#F6F0ED"
+    darkColor="#161622">
+      <ThemedView
+        style={styles.profileContainer}
+        lightColor="#F6F0ED"
+        darkColor="#161622">
         <TouchableOpacity onPress={pickImage}>
           <Image
             source={profileImage ? { uri: profileImage } : require('../../assets/images/favicon.png')}
             style={styles.profileImage}
           />
         </TouchableOpacity>
-        <Text style={styles.username}> {username} </Text>
-        <View style={styles.followContainer}>
-          <Text style={styles.followText}>{followers} Followers {'  '}</Text>
-          <Text style={styles.followText}>{following} Following</Text>
-        </View>
-      </View>
-      <Tab.Navigator>
-        <Tab.Screen name="Posts" component={Posts} />
-        <Tab.Screen name="Reposts" component={Reposts} />
+          <ThemedText
+            style={styles.username}
+            lightColor="#2A2B2E"
+            darkColor="#F6F0ED">
+            {userId.username}
+          </ThemedText>
+          <ThemedText
+            style={styles.description}
+            lightColor="#2A2B2E"
+            darkColor="#F6F0ED">
+            {yearOfStudy} Student studying {major} at {university}
+          </ThemedText>
+          <View style={styles.interestsContainer}>
+                {interests.map((interest, index) => (
+                    <View key={index} style={styles.interestBox}>
+                        <Text style={styles.interestText}>{interest}</Text>
+                    </View>
+                ))}
+          </View>
+      </ThemedView>
+      <Tab.Navigator screenOptions = {screenOptions}>
+        <Tab.Screen name="Posts"> 
+        {() => <Posts/>}
+        </Tab.Screen>
+        <Tab.Screen name="Bookmarks"> 
+        {() => <Bookmarks/>}
+        </Tab.Screen>
       </Tab.Navigator>
-    </View>
-  </SafeAreaView>
+  </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   profileContainer: {
     alignItems: 'center',
@@ -94,11 +211,18 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    marginBottom: 10,
+    marginTop: 35,
   },
   username: {
     fontSize: 20,
     fontWeight: 'bold',
+    marginVertical: 10,
+  },
+  description: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#D0CECE'
   },
   followContainer: {
     flexDirection: 'row',
@@ -113,5 +237,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  interestsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 5,
+  },
+  interestBox: {
+      backgroundColor: '#128F8B',
+      padding: 10,
+      borderRadius: 15,
+      margin: 5,
+  },
+  interestText: {
+      fontSize: 12,
+      fontWeight: 'bold',
+      color: '#E2EFDA'
   },
 });

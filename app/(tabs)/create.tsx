@@ -1,5 +1,5 @@
 
-import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
+import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator, StyleSheet, TextInput } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '@/components/FormField'
@@ -16,13 +16,15 @@ const create = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-
+  const [tags, setTags] = useState('');
+ 
   async function createPost() {
-    if(!title || !body.trim()) {
+    if(!title || !body.trim() || !tags.trim()) {
       return Alert.alert('Please fill in all the fields.')
     }
     
     const trimmedBody = body.trim(); // Ignores any trailing whitespace and newlines from body text
+    const trimmedTags = "{" + tags.trim() + "}";
 
     setIsLoading(true)
     try {
@@ -35,6 +37,7 @@ const create = () => {
         body: JSON.stringify({
           title,
           body: trimmedBody,
+          tags: trimmedTags,
         }),
       });
       const data = await results.json();
@@ -90,6 +93,31 @@ const create = () => {
           alignVertical="top"
           multiline={true}
           />
+
+        <View className={`space-y-2 mt-7`}>
+            <Text className={`text-base text-gray-100 font-bold`}>Add Tags (min 1)</Text>
+
+            <View 
+                className={`w-full px-4 bg-black-100 rounded-2xl focus:border-red items-center flex-row flex-row`} 
+                style={{ 
+                    width: '100%',
+                    maxWidth: 400,
+                    height: 50, 
+                }}
+            >
+                <TextInput
+                    className="flex-1 text-white text-base"
+                    style={{ 
+                        textAlignVertical: 'center', 
+                    }}
+                    value={tags}
+                    placeholder="Use commas to split between tags..."
+                    placeholderTextColor="#7b7b8b"
+                    onChangeText={setTags}
+                    multiline = {true}
+                />
+              </View>
+          </View>
 
           <TouchableOpacity
           style={styles.button}

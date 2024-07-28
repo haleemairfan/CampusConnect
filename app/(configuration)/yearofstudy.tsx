@@ -41,7 +41,7 @@ export default function SelectYear() {
   async function insertYear() {
     setIsLoading(true);
     try {
-      const results = await fetch("http://192.168.50.176:3000/api/v1/insertYear", {
+      const results = await fetch("http://172.31.17.153:3000/api/v1/insertYear", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

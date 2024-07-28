@@ -52,7 +52,7 @@ export default function SelectInterests() {
   async function insertInterests() {
     setIsLoading(true);
     try {
-      const results = await fetch("http://192.168.50.176:3000/api/v1/insertInterests", {
+      const results = await fetch("http://172.31.17.153:3000/api/v1/insertInterests", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

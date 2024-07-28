@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, TouchableOpacity, Alert, Keyboard, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
-import socket from '../chatClient';
+import socket from '../(chat)/chatClient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
@@ -16,7 +16,7 @@ export default function Login() {
     async function handleSignUp() {
         setIsLoading(true);
         try {
-            const results = await fetch('http://192.168.50.176:3000/api/v1/logIn', {
+            const results = await fetch('http://172.31.17.153:3000/api/v1/logIn', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

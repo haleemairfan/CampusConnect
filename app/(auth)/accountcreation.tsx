@@ -4,7 +4,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import socket from '../chatClient';
+import socket from '../(chat)/chatClient';
 import { useUser } from '@/components/UserContext';
 
 export default function AccountCreation() {
@@ -39,7 +39,7 @@ export default function AccountCreation() {
     setEmail(email.trim());
     setPassword(password.trim());
     try {
-      const results = await fetch('http://192.168.50.176:3000/api/v1/createAccount', {
+      const results = await fetch('http://172.31.17.153:3000/api/v1/createAccount', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
