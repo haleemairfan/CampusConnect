@@ -1,5 +1,5 @@
 # **Campus Connect**
-For a more detailed README, please visit: [README Milestone 2](https://docs.google.com/document/d/1_ROoegxTfGiJHuxI4EPCHc7enLd2ztP5-vwhHjduOVE/edit?usp=drive_link)
+For a more detailed README, please visit: [README Milestone 3](https://docs.google.com/document/d/1znst3Wjc7BRF_1shB5QR_itfPGVBPIKAtCR8axG33hI/edit?usp=sharing)
 <br>
 
 ## **Project Description**
