@@ -43,40 +43,53 @@ const Recommended = () => {
 
     setIsLoading(true);
     try {
-        const results = await fetch(`http://192.168.50.176:3000/api/v1/memoryBasedCollaborativeFiltering?limit=${limit}&offset=${offset}&user_uuid=${userId.user_uuid}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        });
-        
-        const data = await results.json();
+      const response = await fetch('http://172.31.17.153:3000/api/v1/memoryBasedCollaborativeFiltering', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          user_uuid: userId.user_uuid,
+          limit,
+          offset: isInitialLoad ? 0 : offset
+        })
+      });
 
-        if (!results.ok) {
-            throw new Error(data.message);
-        }
+      const text = await response.text();
+      const data = JSON.parse(text);
 
-        const postsWithState = data.data.posts.map((post: any) => ({
-            ...post,
-            liked: post.liked_by_user,
-            bookmarked: post.bookmarked_by_user,
-            scaleValue: new Animated.Value(1),
-        }));
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
 
-        setPosts(prevPosts => isInitialLoad ? postsWithState : [...prevPosts, ...postsWithState]);
-        setHasMore(postsWithState.length === limit);
+      const postsWithState = (data.data.posts || []).map((post: any) => ({
+        ...post,
+        liked: post.liked_by_user,
+        bookmarked: post.bookmarked_by_user,
+        scaleValue: new Animated.Value(1),
+      }));
+
+      if (isInitialLoad) {
+        setPosts(postsWithState);
+        setOffset(limit);
+      } else {
+        setPosts(prevPosts => [...prevPosts, ...postsWithState]);
         setOffset(prevOffset => prevOffset + limit);
-    } catch (error) {
-        console.error('Unable to get posts', error);
-        Alert.alert('Error', 'Failed to get posts. Please try again later.');
-    } finally {
-        setIsLoading(false);
-    }
-};
+      }
 
-useEffect(() => {
+      setHasMore(postsWithState.length === limit);
+    } catch (error) {
+      console.error('Unable to get posts', error);
+      Alert.alert('Error', 'Failed to get posts. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPosts(true);
-}, [userId.user_uuid]);
+  }, [userId.user_uuid]);
+
 
 const onRefresh = async () => {
     setRefreshing(true);
@@ -94,7 +107,7 @@ const loadMore = async () => {
 
 const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${postId}`, {
+        const results = await fetch(`http://172.31.17.153:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
