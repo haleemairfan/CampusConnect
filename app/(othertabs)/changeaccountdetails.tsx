@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 
 
 export default function changeAccountDetails() {
@@ -24,7 +25,7 @@ export default function changeAccountDetails() {
 
   async function getAccountDetails() {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserData/${userId.user_uuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/getUserData/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -65,7 +66,7 @@ useEffect(() => {
     setIsLoading(true);
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/updateAccount/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/updateAccount/${userId.user_uuid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

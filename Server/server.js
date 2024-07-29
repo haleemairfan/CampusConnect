@@ -1570,12 +1570,16 @@ const calculateSimilarity = async (userOneUUID, userTwoUUID) => {
 
 
 app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
-    const { user_uuid } = req.body;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = parseInt(req.query.offset) || 0;
+    const { user_uuid, limit, offset } = req.body;
+
+    if (!user_uuid) {
+        return res.status(400).json({
+            status: "error",
+            message: "user_uuid is required"
+        });
+    }
 
     try {
-        // Fetch user configurations
         const { data: userConfig, error: configError } = await supabase
             .from('configuration')
             .select('*')
@@ -1595,12 +1599,16 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
         const user = userConfig[0];
         const { university, major, interests, year_of_study } = user;
 
-        // Fetch users with matching configurations
-        const { data: matchingUsers, error: usersError } = await supabase
+        let query = supabase
             .from('configuration')
             .select('user_uuid, university, major, year_of_study, interests')
-            .or(`university.eq.${university},major.eq.${major},year_of_study.eq.${year_of_study}`)
-            .or(interests.map(interest => `interests.ilike.%${interest}%`).join(','));
+            .or(`university.eq.${university},major.eq.${major},year_of_study.eq.${year_of_study}`);
+        
+        if (interests && interests.length > 0) {
+            query = query.contains('interests', interests);
+        }
+
+        const { data: matchingUsers, error: usersError } = await query;
 
         if (usersError) {
             throw usersError;
@@ -1622,18 +1630,21 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
             userScores.push({ user_uuid: matchingUser.user_uuid, score });
         }
 
-        // Sort users by score in descending order
         userScores.sort((a, b) => b.score - a.score);
 
-        // Fetch posts from matched users with pagination
         const userUuids = userScores.map(user => user.user_uuid);
         const { data: posts, error: postsError } = await supabase
             .from('posts')
-            .select('*')
+            .select(`
+                *,
+                users (
+                    username,
+                    user_flairs
+                )
+            `)
             .in('user_uuid', userUuids)
-            .order('user_uuid', { ascending: true }) // To maintain order of prioritized users
-            .order('post_date', { ascending: false }) // To sort posts by date
-            .range(offset, offset + limit - 1); // Pagination
+            .order('post_date', { ascending: false })
+            .range(offset, offset + limit - 1);
 
         if (postsError) {
             throw postsError;
@@ -1641,15 +1652,20 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
 
         let fetchedPosts = posts;
 
-        // If not enough posts, fetch random posts to fill the gap
         if (fetchedPosts.length < limit) {
             const remainingLimit = limit - fetchedPosts.length;
             const { data: randomPosts, error: randomPostsError } = await supabase
                 .from('posts')
-                .select('*')
+                .select(`
+                    *,
+                    users (
+                        username,
+                        user_flairs
+                    )
+                `)
                 .not('user_uuid', 'in', `(${userUuids.join(',')})`)
-                .order('post_date', { ascending: false }) // To sort posts by date
-                .range(0, remainingLimit - 1); // Fetch the remaining number of posts
+                .order('post_date', { ascending: false })
+                .range(0, remainingLimit - 1);
 
             if (randomPostsError) {
                 throw randomPostsError;
@@ -1660,7 +1676,38 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
 
         return res.status(200).json({
             status: "success",
-            data: fetchedPosts,
+            data: {
+                posts: fetchedPosts
+            }
+        });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({
+            status: "error",
+            message: err.message,
+        });
+    }
+});
+
+app.post("/api/v1/recentPosts", async (req, res) => {
+    const { user_uuid } = req.query;
+
+    try {
+        // Fetch the most recent posts
+        const { data: posts, error: postsError } = await supabase
+            .from('posts')
+            .select('*')
+            .eq('user_uuid', user_uuid) // Filter by user_uuid
+            .order('post_date', { ascending: false }) // To sort posts by date
+            .order('post_time', { ascending: false }); // To sort posts by time within the same date
+
+        if (postsError) {
+            throw postsError;
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: posts,
         });
     } catch (err) {
         console.error(err);
@@ -1673,96 +1720,24 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
 
 
 app.post("/api/v1/getPopularPosts", async (req, res) => {
-    const { user_uuid } = req.body;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = parseInt(req.query.offset) || 0;
+    const { user_uuid } = req.query;
 
     try {
-        // Fetch user configurations
-        const { data: userConfig, error: configError } = await supabase
-            .from('configuration')
-            .select('*')
-            .eq('user_uuid', user_uuid);
-
-        if (configError) {
-            throw configError;
-        }
-
-        if (!userConfig || userConfig.length === 0) {
-            return res.status(400).json({
-                status: "error",
-                message: "User configuration not found"
-            });
-        }
-
-        const user = userConfig[0];
-        const { university, major, interests, year_of_study } = user;
-
-        // Fetch users with matching configurations
-        const { data: matchingUsers, error: usersError } = await supabase
-            .from('configuration')
-            .select('user_uuid, university, major, year_of_study, interests')
-            .or(`university.eq.${university},major.eq.${major},year_of_study.eq.${year_of_study}`)
-            .or(interests.map(interest => `interests.ilike.%${interest}%`).join(','));
-
-        if (usersError) {
-            throw usersError;
-        }
-
-        const userScores = [];
-        for (const matchingUser of matchingUsers) {
-            let score = 0;
-            if (matchingUser.university === university) score += 1;
-            if (matchingUser.major === major) score += 1;
-            if (matchingUser.year_of_study === year_of_study) score += 1;
-            if (matchingUser.interests) {
-                const userInterests = matchingUser.interests;
-                const commonInterests = interests.filter(interest => userInterests.includes(interest));
-                score += commonInterests.length;
-            }
-            const similarity = await calculateSimilarity(user_uuid, matchingUser.user_uuid);
-            score += similarity;
-            userScores.push({ user_uuid: matchingUser.user_uuid, score });
-        }
-
-        // Sort users by score in descending order
-        userScores.sort((a, b) => b.score - a.score);
-
-        // Fetch posts from matched users with pagination
-        const userUuids = userScores.map(user => user.user_uuid);
+        // Fetch the most popular posts based on likes and bookmarks
         const { data: posts, error: postsError } = await supabase
             .from('posts')
             .select('*')
-            .in('user_uuid', userUuids)
-            .order('like_count', { ascending: false }) // Sort by popularity
-            .range(offset, offset + limit - 1); // Pagination
+            .eq('user_uuid', user_uuid) // Filter by user_uuid
+            .order('like_count', { ascending: false }) // To sort posts by number of likes
+            .order('bookmark_count', { ascending: false }); // To sort posts by number of bookmarks
 
         if (postsError) {
             throw postsError;
         }
 
-        let fetchedPosts = posts;
-
-        // If not enough posts, fetch random popular posts to fill the gap
-        if (fetchedPosts.length < limit) {
-            const remainingLimit = limit - fetchedPosts.length;
-            const { data: randomPosts, error: randomPostsError } = await supabase
-                .from('posts')
-                .select('*')
-                .not('user_uuid', 'in', `(${userUuids.join(',')})`)
-                .order('like_count', { ascending: false }) // Sort by popularity
-                .range(0, remainingLimit - 1); // Fetch the remaining number of posts
-
-            if (randomPostsError) {
-                throw randomPostsError;
-            }
-
-            fetchedPosts = [...fetchedPosts, ...randomPosts];
-        }
-
         return res.status(200).json({
             status: "success",
-            data: fetchedPosts,
+            data: posts,
         });
     } catch (err) {
         console.error(err);
@@ -1772,107 +1747,4 @@ app.post("/api/v1/getPopularPosts", async (req, res) => {
         });
     }
 });
-
-
-app.post("/api/v1/memoryBasedCollaborativeFilteringRecent", async (req, res) => {
-    const { user_uuid } = req.body;
-    const limit = parseInt(req.query.limit) || 10;
-    const offset = parseInt(req.query.offset) || 0;
-
-    try {
-        // Fetch user configurations
-        const { data: userConfig, error: configError } = await supabase
-            .from('configuration')
-            .select('*')
-            .eq('user_uuid', user_uuid);
-
-        if (configError) {
-            throw configError;
-        }
-
-        if (!userConfig || userConfig.length === 0) {
-            return res.status(400).json({
-                status: "error",
-                message: "User configuration not found"
-            });
-        }
-
-        const user = userConfig[0];
-        const { university, major, interests, year_of_study } = user;
-
-        // Fetch users with matching configurations
-        const { data: matchingUsers, error: usersError } = await supabase
-            .from('configuration')
-            .select('user_uuid, university, major, year_of_study, interests')
-            .or(`university.eq.${university},major.eq.${major},year_of_study.eq.${year_of_study}`)
-            .or(interests.map(interest => `interests.ilike.%${interest}%`).join(','));
-
-        if (usersError) {
-            throw usersError;
-        }
-
-        const userScores = [];
-        for (const matchingUser of matchingUsers) {
-            let score = 0;
-            if (matchingUser.university === university) score += 1;
-            if (matchingUser.major === major) score += 1;
-            if (matchingUser.year_of_study === year_of_study) score += 1;
-            if (matchingUser.interests) {
-                const userInterests = matchingUser.interests;
-                const commonInterests = interests.filter(interest => userInterests.includes(interest));
-                score += commonInterests.length;
-            }
-            const similarity = await calculateSimilarity(user_uuid, matchingUser.user_uuid);
-            score += similarity;
-            userScores.push({ user_uuid: matchingUser.user_uuid, score });
-        }
-
-        // Sort users by score in descending order
-        userScores.sort((a, b) => b.score - a.score);
-
-        // Fetch posts from matched users
-        const userUuids = userScores.map(user => user.user_uuid);
-        const { data: posts, error: postsError } = await supabase
-            .from('posts')
-            .select('*')
-            .in('user_uuid', userUuids)
-            .order('post_date', { ascending: false }) // To sort posts by date
-            .range(offset, offset + limit - 1); // Pagination
-
-        if (postsError) {
-            throw postsError;
-        }
-
-        let fetchedPosts = posts;
-
-        // If not enough posts, fetch recent posts to fill the gap
-        if (fetchedPosts.length < limit) {
-            const remainingLimit = limit - fetchedPosts.length;
-            const { data: recentPosts, error: recentPostsError } = await supabase
-                .from('posts')
-                .select('*')
-                .not('user_uuid', 'in', `(${userUuids.join(',')})`)
-                .order('post_date', { ascending: false }) // To sort posts by date
-                .range(0, remainingLimit - 1); // Fetch the remaining number of posts
-
-            if (recentPostsError) {
-                throw recentPostsError;
-            }
-
-            fetchedPosts = [...fetchedPosts, ...recentPosts];
-        }
-
-        return res.status(200).json({
-            status: "success",
-            data: fetchedPosts,
-        });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({
-            status: "error",
-            message: err.message,
-        });
-    }
-});
-
-
+ 

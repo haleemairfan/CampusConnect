@@ -37,7 +37,7 @@ export default function ProfilePage() {
     async function getUserConfig() {
       setIsLoading(true)
       try {
-          const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
+          const results = await fetch(`http://172.31.17.153:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/json'

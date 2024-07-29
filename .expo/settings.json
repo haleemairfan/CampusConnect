@@ -1,11 +1,3 @@
 {
   "urlRandomness": "fgu5XYc",
-  "ngrokPath": "/opt/homebrew/bin/ngrok",
-  "dev": true,
-  "minify": false,
-  "https": false,
-  "scheme": null,
-  "hostType": "lan",
-  "lanType": "ip",
-  "devClient": false
 }

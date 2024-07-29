@@ -5,6 +5,8 @@ import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { router } from 'expo-router';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
+
 
 const CommentDropdownMenu = ({ commentUserId, currentUserId, postUuid, commentUuid, commentBody }) => {
   const [showDropdown, setShowDropdown] = useState(false); 
@@ -25,7 +27,7 @@ const CommentDropdownMenu = ({ commentUserId, currentUserId, postUuid, commentUu
   // Async Function to Delete a Comment
   async function deleteComment(commentUuid) {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/deleteComment/${commentUuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/deleteComment/${commentUuid}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

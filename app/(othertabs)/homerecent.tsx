@@ -8,6 +8,8 @@ import { Redirect, router } from 'expo-router'
 import EmptyStateHome from '@/components/EmptyStateHome';
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants';
+import IPaddress from '@/IPaddress';
+
 
 interface Post {
   post_uuid: string;
@@ -38,7 +40,7 @@ const Recent = () => {
   async function getAllPosts() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://172.31.17.153:3000/api/v1/recentPosts/${userId.user_uuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/recentPosts/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -81,7 +83,7 @@ const onRefresh = async () => {
 
 const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
-        const results = await fetch(`http://172.31.17.153:3000/api/v1/updatePostCount/${postId}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

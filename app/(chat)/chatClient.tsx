@@ -1,7 +1,8 @@
 
 import { io } from "socket.io-client"
+import IPaddress from "@/IPaddress";
 
-const socket = io("http://172.31.17.153:3000", {
+const socket = io(`http://${IPaddress}:3000`, {
     auth: {
         username: null
     },

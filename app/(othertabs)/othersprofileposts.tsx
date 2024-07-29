@@ -9,6 +9,8 @@ import { Redirect, router, useLocalSearchParams } from 'expo-router'
 import EmptyStateHome from '@/components/EmptyStateHome';
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants';
+import IPaddress from '@/IPaddress';
+
 
 interface Post {
   post_uuid: string;
@@ -38,7 +40,7 @@ const OthersPosts = ({ userUuid }) => {
   async function getUserPosts() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/getPosts/${userUuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/getPosts/${userUuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -80,7 +82,7 @@ const onRefresh = async () => {
 
 const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${postId}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

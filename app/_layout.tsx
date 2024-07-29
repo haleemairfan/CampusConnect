@@ -38,7 +38,8 @@ const RootLayout = () => {
               <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
               <Stack.Screen name = "(configuration)" options = {{ headerShown: false}} />  
               <Stack.Screen name = "(othertabs)" options = {{ headerShown: false}} />
-              <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />        
+              <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />   
+              <Stack.Screen name = "(chat)" options = {{ headerShown: false }} />     
           </Stack>
       </UserProvider>
     )

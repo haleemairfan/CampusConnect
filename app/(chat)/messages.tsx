@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import Modal from 'react-native-modal';
 import socket from '../(chat)/chatClient';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 
 import ImageButton from '../../components/ImageButton';
 import EmptyStateMessages from '@/components/EmptyStateMessages';
@@ -34,7 +35,7 @@ const Messages = () => {
       if (!sender) return;
 
       try {
-        const response = await fetch('http://172.31.17.153:3000/api/v1/fetchAllConversations', {
+        const response = await fetch(`http://${IPaddress}:3000/api/v1/fetchAllConversations`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -64,7 +65,7 @@ const Messages = () => {
 
   const validateUsername = async () => {
     try {
-      const response = await fetch('http://192.168.50.176:3000/api/v1/validateUsername', {
+      const response = await fetch(`http://${IPaddress}:3000/api/v1/validateUsername`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +89,7 @@ const Messages = () => {
 
   const createChat = async () => {
     try {
-      const response = await fetch('http://192.168.50.176:3000/api/v1/conversations', {
+      const response = await fetch(`http://${IPaddress}:3000/api/v1/conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -9,6 +9,8 @@ import { Redirect, router } from 'expo-router'
 import EmptyStateHome from '@/components/EmptyStateHome';
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants';
+import IPaddress from '@/IPaddress';
+
 
 interface Post {
   post_uuid: string;
@@ -39,7 +41,7 @@ const Posts = () => {
   async function getUserPosts() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/getPosts/${userId.user_uuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/getPosts/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

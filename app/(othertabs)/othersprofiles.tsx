@@ -9,6 +9,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from 'react-native';
 import OthersPosts from './othersprofileposts';
 import { useLocalSearchParams } from 'expo-router';
+import IPaddress from '@/IPaddress';
+
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -37,7 +39,7 @@ export default function othersProfile() {
     async function getUserConfig() {
       setIsLoading(true)
       try {
-          const results = await fetch(`http://192.168.1.98:3000/api/v1/getUserConfig/${params.userUuid}`, {
+          const results = await fetch(`http://${IPaddress}:3000/api/v1/getUserConfig/${params.userUuid}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/json'

@@ -14,6 +14,8 @@ import { useLocalSearchParams } from 'expo-router'
 import { useUser } from '@/components/UserContext'
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants'
+import IPaddress from '@/IPaddress';
+
 
 interface Post {
     post_uuid: string;
@@ -56,7 +58,7 @@ const Search = () => {
                 lowercaseQuery = '';
             }
         
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/searchedPosts/${encodeURIComponent(lowercaseQuery)}/${userId.user_uuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/searchedPosts/${encodeURIComponent(lowercaseQuery)}/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

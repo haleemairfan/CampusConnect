@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
+
 
 const years = ['1', '2', '3', '4', 'Alumni', 'Exchanger'];
 
@@ -41,7 +43,7 @@ export default function SelectYear() {
   async function insertYear() {
     setIsLoading(true);
     try {
-      const results = await fetch("http://172.31.17.153:3000/api/v1/insertYear", {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/insertYear`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

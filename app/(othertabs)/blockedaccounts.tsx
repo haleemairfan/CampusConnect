@@ -4,6 +4,8 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useUser } from '@/components/UserContext';
 import { Redirect, router } from 'expo-router';
+import IPaddress from '@/IPaddress';
+
 
 import EmptyStateHome from '@/components/EmptyStateHome';
 
@@ -17,7 +19,7 @@ const BlockedAccounts = () => {
   async function getBlockedAccounts() {
     setIsLoading(true);
     try {
-      const results = await fetch(`http://172.31.17.153:3000/api/v1/getBlockedAccounts/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/getBlockedAccounts/${userId.user_uuid}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'

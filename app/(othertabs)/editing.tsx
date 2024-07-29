@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 
 const editing = () => {
   const items = useLocalSearchParams()
@@ -29,7 +30,7 @@ const editing = () => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.50.176:3000/api/v1/updatePost/${items.postUuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePost/${items.postUuid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

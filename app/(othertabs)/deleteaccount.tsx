@@ -5,6 +5,7 @@ import { Link, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 
 
 export default function deletYourAccount() {

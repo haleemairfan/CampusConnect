@@ -4,6 +4,8 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
+
 
 const majors = [
   'Architecture',
@@ -85,7 +87,7 @@ export default function SelectMajor() {
   async function insertMajor() {
     setIsLoading(true);
     try {
-      const results = await fetch("http://172.31.17.153:3000/api/v1/insertMajor", {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/insertMajor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

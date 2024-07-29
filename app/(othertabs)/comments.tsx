@@ -13,6 +13,8 @@ import { icons } from '../../constants'
 import ImageButton from '@/components/ImageButton'
 import { useUser } from '@/components/UserContext';
 import CommentDropdownMenu from '@/components/CommentDropDownMenu';
+import IPaddress from '@/IPaddress';
+
 
 interface Post {
     post_uuid: string;
@@ -63,7 +65,7 @@ const Comments = () => {
   async function getSinglePost() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/singlePost/${post_items.postUuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/singlePost/${post_items.postUuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -100,7 +102,7 @@ useEffect(() => {
   async function getAllComments() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/allComments/${post_items.postUuid}/${userId.user_uuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/allComments/${post_items.postUuid}/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -150,7 +152,7 @@ useEffect(() => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/createComment/${userId.user_uuid}/${post_items.postUuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/createComment/${userId.user_uuid}/${post_items.postUuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -178,7 +180,7 @@ useEffect(() => {
 
   const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${postId}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -201,7 +203,7 @@ useEffect(() => {
 
 const updateCommentCount = async (comment_uuid: string, commentLikeCount: number, commentDislikeCount: number, commentLiked: boolean, commentDisliked: boolean) => {
   try {
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${comment_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePostCount/${comment_uuid}`, {
           method: 'PUT',
           headers: {
               'Content-Type': 'application/json'

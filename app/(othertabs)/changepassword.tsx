@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
+
 
 
 export default function changePassword() {
@@ -19,7 +21,7 @@ export default function changePassword() {
     setIsLoading(true);
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePassword/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePassword/${userId.user_uuid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

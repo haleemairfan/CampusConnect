@@ -8,6 +8,8 @@ import { router } from 'expo-router'
 import EmptyStateHome from '@/components/EmptyStateHome';
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants';
+import IPaddress from '@/IPaddress';
+
 
 interface Post {
   post_uuid: string;
@@ -43,7 +45,7 @@ const Recommended = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://172.31.17.153:3000/api/v1/memoryBasedCollaborativeFiltering', {
+      const response = await fetch(`http://${IPaddress}:3000/api/v1/memoryBasedCollaborativeFiltering`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -107,7 +109,7 @@ const loadMore = async () => {
 
 const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
-        const results = await fetch(`http://172.31.17.153:3000/api/v1/updatePostCount/${postId}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

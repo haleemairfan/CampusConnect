@@ -5,6 +5,7 @@ import socket from '../(chat)/chatClient';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '../../IPaddress';
 
 export default function Login() {
     const { setUserId } = useUser();
@@ -16,7 +17,7 @@ export default function Login() {
     async function handleSignUp() {
         setIsLoading(true);
         try {
-            const results = await fetch('http://172.31.17.153:3000/api/v1/logIn', {
+            const results = await fetch(`http://${IPaddress}:3000/api/v1/logIn`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

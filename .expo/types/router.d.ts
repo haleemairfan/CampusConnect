@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { TextProps, GestureResponderEvent } from 'react-native';
 
 export namespace ExpoRouter {
-  type StaticRoutes = `/` | `/(auth)` | `/(chat)/chat` | `/(chat)/chatClient` | `/(chat)/messages` | `/(configuration)` | `/(othertabs)` | `/(tabs)` | `/_sitemap` | `/accountcreation` | `/blockedaccounts` | `/changeaccountdetails` | `/changepassword` | `/chat` | `/chatClient` | `/commentediting` | `/comments` | `/create` | `/deleteaccount` | `/editing` | `/home` | `/homepopular` | `/homereccomended` | `/homerecent` | `/interests` | `/login` | `/major` | `/messages` | `/othersprofileposts` | `/othersprofiles` | `/posts` | `/profile` | `/profilebookmarks` | `/profileposts` | `/reposts` | `/settings` | `/university` | `/updateinterests` | `/updatemajor` | `/updateuniversity` | `/updateyearofstudy` | `/yearofstudy`;
+  type StaticRoutes = `/` | `/(auth)` | `/(chat)` | `/(configuration)` | `/(othertabs)` | `/(tabs)` | `/_sitemap` | `/accountcreation` | `/blockedaccounts` | `/changeaccountdetails` | `/changepassword` | `/chat` | `/chatClient` | `/commentediting` | `/comments` | `/create` | `/deleteaccount` | `/editing` | `/home` | `/homepopular` | `/homereccomended` | `/homerecent` | `/interests` | `/login` | `/major` | `/messages` | `/othersprofileposts` | `/othersprofiles` | `/posts` | `/profile` | `/profilebookmarks` | `/profileposts` | `/reposts` | `/settings` | `/university` | `/updateinterests` | `/updatemajor` | `/updateuniversity` | `/updateyearofstudy` | `/yearofstudy`;
   type DynamicRoutes<T extends string> = `/search/${SingleRoutePart<T>}`;
   type DynamicRouteTemplate = `/search/[query]`;
 

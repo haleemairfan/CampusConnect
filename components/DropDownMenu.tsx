@@ -4,6 +4,8 @@ import { icons } from '../constants';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { router } from 'expo-router';
+import IPaddress from '@/IPaddress';
+
 
 const DropdownMenu = ({ postUserId, currentUserId, postUuid, postTitle, postBody }) => {
   const [showDropdown, setShowDropdown] = useState(false); 
@@ -24,7 +26,7 @@ const DropdownMenu = ({ postUserId, currentUserId, postUuid, postTitle, postBody
   // Async Function to Delete a Post
   async function deletePost(postUuidToDelete) {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/deletePost/${postUuidToDelete}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/deletePost/${postUuidToDelete}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

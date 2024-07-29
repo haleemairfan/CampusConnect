@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '@/components/FormField'
 import CustomButton from '@/components/CustomButton'
 import { Redirect, router, useLocalSearchParams} from 'expo-router'
+import IPaddress from '@/IPaddress';
+
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -22,7 +24,7 @@ const CommentEditing = () => {
   async function getSinglePost() {
     setIsLoading(true)
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/singlePost/${items.postUuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/singlePost/${items.postUuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -61,7 +63,7 @@ const CommentEditing = () => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/updateComment/${items.postUuid}/${items.commentUuid}/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/updateComment/${items.postUuid}/${items.commentUuid}/${userId.user_uuid}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'

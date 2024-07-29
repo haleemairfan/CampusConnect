@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import socket from '../(chat)/chatClient';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 
 export default function AccountCreation() {
   const { setUserId } = useUser();
@@ -39,7 +40,7 @@ export default function AccountCreation() {
     setEmail(email.trim());
     setPassword(password.trim());
     try {
-      const results = await fetch('http://172.31.17.153:3000/api/v1/createAccount', {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/createAccount`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

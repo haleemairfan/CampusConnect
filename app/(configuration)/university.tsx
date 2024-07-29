@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 
 const universities = [
   'National University of Singapore (NUS)',
@@ -50,7 +51,7 @@ export default function SelectUniversity() {
   async function insertUniversity() {
     setIsLoading(true);
     try {
-      const results = await fetch("http://172.31.17.153:3000/api/v1/insertUniversity", {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/insertUniversity`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
