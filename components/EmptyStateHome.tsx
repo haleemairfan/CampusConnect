@@ -14,17 +14,6 @@ const EmptyStateHome = ({ title, subtitle }) => {
         <Text className = 'text-center text-white mt-2' style={{ fontSize: 20 }}>
             {subtitle}
         </Text>
-
-        <Text className=" text-white text-center text-center mt-3 ml-20 font-bold" style={{ fontSize: 19 }}>
-            {'\n'} {'\n'} {'\n'} {'\n'}
-            Create {''}
-            <Text style={{ color: '#d8a838' }}>
-            your first post
-            </Text> {'\n'}
-            here!
-        </Text>
-
-        <Image source={icons.down_arrow} className="w-[50px] h-[30px] mt-3 ml-20" resizeMode='contain'/>
     </View>
   )
 }

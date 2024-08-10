@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { TextInput, StyleSheet, FlatList, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator, View } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+
+import React, { useState, useEffect } from 'react';
+import { TextInput, StyleSheet, FlatList, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
+import { useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 
 
 const majors = [
@@ -54,13 +54,15 @@ const majors = [
   'Theatre Studies',
 ];
 
+
 export default function SelectMajor() {
-  const { userId } = useUser();
-  const id = userId.user_uuid;
+  const params = useLocalSearchParams();
   const [query, setQuery] = useState('');
   const [filteredMajors, setFilteredMajors] = useState(majors);
   const [selectedMajor, setSelectedMajor] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const selectedUniversity = params.selectedUniversity;
+
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = (text: string) => {
@@ -83,35 +85,7 @@ export default function SelectMajor() {
     setDropdownVisible(false);
     Keyboard.dismiss();
   };
-
-  async function insertMajor() {
-    setIsLoading(true);
-    try {
-      const results = await fetch(`http://${IPaddress}:3000/api/v1/insertMajor`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id,
-          selectedMajor
-        }),
-      });
-
-      const data = await results.json();
-
-      if (!results.ok) {
-        throw new Error(data.message);
-      }
-      router.push({ pathname: './yearofstudy' });
-    } catch (error) {
-      console.error('Invalid major selected:', error);
-      Alert.alert('Error', 'Invalid Major Selected', [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
+  
   return (
     <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
       <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#161622">
@@ -123,7 +97,7 @@ export default function SelectMajor() {
         </ThemedText>
         <ThemedView style={styles.inputContainer} lightColor="#fff" darkColor="#333">
           <TextInput
-            style={[styles.input, selectedMajor ? styles.selectedTextColor : null]}
+            style={[styles.input, selectedMajor ? styles.selectedTextColor: null]}
             placeholder="Enter your major..."
             placeholderTextColor="#7b7b8b"
             value={query}
@@ -132,7 +106,7 @@ export default function SelectMajor() {
           />
         </ThemedView>
         {dropdownVisible && filteredMajors.length > 0 && (
-          <ThemedView style={[styles.inputContainer, styles.dropdown]} lightColor="#fff" darkColor="#333">
+          <ThemedView style={styles.dropdown} lightColor="#fff" darkColor="#333">
             <FlatList
               data={filteredMajors}
               keyExtractor={(item) => item}
@@ -156,17 +130,24 @@ export default function SelectMajor() {
             </ThemedText>
           </ThemedView>
         ) : null}
-        {selectedMajor ? (
-          <TouchableOpacity style={styles.button} onPress={insertMajor} disabled={isLoading}>
-            {isLoading ? (
-              <ActivityIndicator size="small" color="#d8a838" />
-            ) : (
-              <ThemedText style={styles.continueButtonText} lightColor="#2A2B2E" darkColor="#F6F0ED" type="default">
+            {selectedMajor ? (
+            <TouchableOpacity
+            style={styles.continueButton}
+            onPress={() => router.push({
+              pathname: '/yearofstudy',
+              params: { selectedUniversity, selectedMajor }
+            })}
+            disabled={isLoading}
+          >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#F6F0ED" />
+              ): (
+                <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
                 Continue
-              </ThemedText>
-            )}
-          </TouchableOpacity>
-        ) : null}
+                </ThemedText>
+              )}
+            </TouchableOpacity>
+            ) : null}
       </ThemedView>
     </TouchableWithoutFeedback>
   );
@@ -177,7 +158,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'column',
     padding: 20,
   },
   welcomeText: {
@@ -198,7 +178,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     height: 50,
-    width: 250,
+    width: 325,
     borderColor: '#ccc',
     borderWidth: 1,
     marginBottom: 20,
@@ -208,25 +188,20 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingHorizontal: 8,
-    color: '#000'
   },
   dropdown: {
-    minHeight: 200, // Increased height to show more items
-    width: 250,
+    maxHeight: 150,
+    width: '100%',
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 16,
-    marginTop: -10 // Slight overlap with the input box
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    fontSize: 16,
-    textAlign: 'center',
   },
   selectedContainer: {
-    marginTop: 60, // Positioned lower
+    marginTop: 20,
     alignItems: 'center',
   },
   selectedLabel: {
@@ -236,22 +211,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 5,
-    textAlign: 'center'
+    textAlign: "center"
   },
-  button: {
-    paddingTop: 8,
-    paddingBottom: 8,
-    borderRadius: 16, 
-    backgroundColor: 'transparent',
-    borderColor: '#d8a838',
-    borderWidth: 3,
-    width: 150,
-    marginTop: 40 // Positioned lower
+  continueButton: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#007BFF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
   continueButtonText: {
-    textAlign: 'center',
-    fontWeight: 'bold',
+    color: '#fff',
     fontSize: 16,
+    fontWeight: "bold"
   },
   selectedTextColor: {
     color: '#7b7b8b',

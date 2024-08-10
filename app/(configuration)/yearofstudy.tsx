@@ -1,23 +1,22 @@
+
 import React, { useState } from 'react';
 import { TextInput, StyleSheet, FlatList, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Alert, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
 
-
-const years = ['1', '2', '3', '4', 'Alumni', 'Exchanger'];
+const years = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Alumni', 'Exchanger'];
 
 export default function SelectYear() {
-  const { userId } = useUser();
-  const id = userId.user_uuid;
+  const params = useLocalSearchParams();
   const [query, setQuery] = useState('');
   const [filteredYears, setFilteredYears] = useState(years);
   const [selectedYear, setSelectedYear] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const selectedUniversity = params.selectedUniversity;
+  const selectedMajor = params.selectedMajor;
+
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSearch = (text: string) => {
     setQuery(text);
@@ -40,34 +39,6 @@ export default function SelectYear() {
     Keyboard.dismiss();
   };
 
-  async function insertYear() {
-    setIsLoading(true);
-    try {
-      const results = await fetch(`http://${IPaddress}:3000/api/v1/insertYear`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id,
-          selectedYear,
-        }),
-      });
-
-      const data = await results.json();
-
-      if (!results.ok) {
-        throw new Error(data.message);
-      }
-      router.push({ pathname: './interests' });
-    } catch (error) {
-      console.error('Invalid year of study selected:', error);
-      Alert.alert('Error', 'Invalid Year of Study Selected', [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   return (
     <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
       <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#161622">
@@ -76,7 +47,7 @@ export default function SelectYear() {
         </ThemedText>
         <ThemedView style={styles.inputContainer} lightColor="#fff" darkColor="#333">
           <TextInput
-            style={[styles.input, selectedYear ? styles.selectedTextColor : null]}
+            style={[styles.input, selectedYear ? styles.selectedTextColor: null]}
             placeholder="Enter your year..."
             placeholderTextColor="#7b7b8b"
             value={query}
@@ -85,7 +56,7 @@ export default function SelectYear() {
           />
         </ThemedView>
         {dropdownVisible && filteredYears.length > 0 && (
-          <ThemedView style={[styles.inputContainer, styles.dropdown]} lightColor="#fff" darkColor="#333">
+          <ThemedView style={styles.dropdown} lightColor="#fff" darkColor="#333">
             <FlatList
               data={filteredYears}
               keyExtractor={(item) => item}
@@ -110,16 +81,23 @@ export default function SelectYear() {
           </ThemedView>
         ) : null}
         {selectedYear ? (
-          <TouchableOpacity style={styles.continueButton} onPress={insertYear} disabled={isLoading}>
+          <TouchableOpacity
+          style={styles.continueButton}
+          onPress={() => router.push({
+            pathname: '/interests',
+            params: { selectedUniversity, selectedMajor, selectedYear }
+          })}
+          disabled={isLoading}
+        >
             {isLoading ? (
-              <ActivityIndicator size="small" color="#F6F0ED" />
-            ) : (
-              <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
+                <ActivityIndicator size="small" color="#F6F0ED" />
+              ): (
+                <ThemedText style={styles.continueButtonText} lightColor="#F6F0ED" darkColor="#2A2B2E">
                 Continue
-              </ThemedText>
-            )}
-          </TouchableOpacity>
-        ) : null}
+                </ThemedText>
+              )}
+            </TouchableOpacity>
+            ) : null}
       </ThemedView>
     </TouchableWithoutFeedback>
   );
@@ -137,6 +115,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
+  label: {
+    fontSize: 18,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
   inputContainer: {
     paddingHorizontal: 16,
     borderRadius: 16,
@@ -145,7 +128,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     height: 50,
-    width: 250,
+    width: 325,
     borderColor: '#ccc',
     borderWidth: 1,
     marginBottom: 20,
@@ -155,25 +138,20 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     paddingHorizontal: 8,
-    color: '#000'
   },
   dropdown: {
-    maxHeight: 200, // Increased height to show more items
-    width: 250,
+    maxHeight: 150,
+    width: '100%',
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 16,
-    marginTop: -10 // Slight overlap with the input box
   },
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    fontSize: 16,
-    textAlign: 'center',
   },
   selectedContainer: {
-    marginTop: 20, // Positioned lower
+    marginTop: 20,
     alignItems: 'center',
   },
   selectedLabel: {
@@ -183,22 +161,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 5,
-    textAlign: 'center'
   },
   continueButton: {
-    paddingTop: 8,
-    paddingBottom: 8,
-    borderRadius: 16, 
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
     backgroundColor: '#007BFF',
-    borderWidth: 3,
-    width: 150,
-    marginTop: 40 // Positioned lower
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
   continueButtonText: {
-    textAlign: 'center',
-    fontWeight: 'bold',
+    color: '#fff',
     fontSize: 16,
-    color: '#fff', // Ensure text is white to contrast with button background
+    fontWeight: "bold"
   },
   selectedTextColor: {
     color: '#7b7b8b',

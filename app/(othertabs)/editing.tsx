@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
+import IPaddress from '@/IPaddress'
 
 const editing = () => {
   const items = useLocalSearchParams()

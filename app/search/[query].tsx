@@ -14,8 +14,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { useUser } from '@/components/UserContext'
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants'
-import IPaddress from '@/IPaddress';
-
+import IPaddress from '@/IPaddress'
 
 interface Post {
     post_uuid: string;
@@ -100,7 +99,7 @@ useEffect(() => {
 
 const updatePostCount = async (postId: string, likeCount: number, bookmarkCount: number, liked: boolean, bookmarked: boolean) => {
     try {
-        const results = await fetch(`http://192.168.1.98:3000/api/v1/updatePostCount/${postId}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/updatePostCount/${postId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'

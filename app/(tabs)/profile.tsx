@@ -37,18 +37,18 @@ export default function ProfilePage() {
     async function getUserConfig() {
       setIsLoading(true)
       try {
-          const results = await fetch(`http://172.31.17.153:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
+          const results = await fetch(`http://172.31.42.194:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/json'
               },  
           })
           const data = await results.json();
-          
-          setMajor(data.data.major)
-          setUniversity(data.data.university)
-          setYearOfStudy(data.data.year_of_study)
-          setInterests(data.data.interests)
+
+          setMajor(data.data.posts[0].major)
+          setUniversity(data.data.posts[0].university)
+          setYearOfStudy(data.data.posts[0].year_of_study)
+          setInterests(data.data.posts[0].interests)
 
           if (!results.ok) {
               throw new Error(data.message);
@@ -108,7 +108,7 @@ const onRefresh = async () => {
             });
   
             // Upload the image to your backend
-            const uploadResponse = await fetch(`http://192.168.1.98:3000/api/v1/uploadImage`, {
+            const uploadResponse = await fetch(`http://172.31.42.194:3000/api/v1/uploadImage`, {
               method: 'POST',
               body: formData,
               headers: {
@@ -126,7 +126,7 @@ const onRefresh = async () => {
             const imageUrl = uploadData.data.imageUrl;
   
             // Update the profile image URL in the database
-            const updateResponse = await fetch(`http://192.168.1.98:3000/api/v1/updateProfileImage/${userId.user_uuid}`, {
+            const updateResponse = await fetch(`http://172.31.42.194:3000/api/v1/updateProfileImage/${userId.user_uuid}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

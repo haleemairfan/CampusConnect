@@ -9,8 +9,7 @@ import { Redirect, router } from 'expo-router'
 import EmptyStateHome from '@/components/EmptyStateHome';
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants';
-import IPaddress from '@/IPaddress';
-
+import IPaddress from '@/IPaddress'
 
 interface Post {
   post_uuid: string;

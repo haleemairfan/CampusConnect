@@ -5,13 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import FormField from '@/components/FormField'
 import CustomButton from '@/components/CustomButton'
 import { Redirect, router, useLocalSearchParams} from 'expo-router'
-import IPaddress from '@/IPaddress';
-
 
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress'
 
 const CommentEditing = () => {
   const items = useLocalSearchParams()
@@ -78,7 +77,7 @@ const CommentEditing = () => {
         throw new Error(data.message);
       }
 
-      Alert.alert('Success', 'Post updated successfully!',
+      Alert.alert('Success', 'Comment updated successfully!',
         [{ text: 'Continue', onPress: () => router.push({
             pathname: '/comments',
             params: {
@@ -132,7 +131,7 @@ const CommentEditing = () => {
             lightColor = "#2A2B2E"
             darkColor = "#F6F0ED"
             type="default">
-            {isLoading ? "Publishing..." : "Edit your post!"}
+            {isLoading ? "Editing..." : "Edit your comment!"}
             </ThemedText>
           )}
         </TouchableOpacity>

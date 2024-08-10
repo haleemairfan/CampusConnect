@@ -5,8 +5,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useEffect } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AppProvider } from './context';
 import { UserProvider } from '@/components/UserContext';
 
 
@@ -29,18 +27,16 @@ const RootLayout = () => {
     return null;            
   }
 
-
     return (
       <UserProvider>
-          <Stack>
-              <Stack.Screen name = "index" options = {{ headerShown: false}} />
-              <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
-              <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
-              <Stack.Screen name = "(configuration)" options = {{ headerShown: false}} />  
-              <Stack.Screen name = "(othertabs)" options = {{ headerShown: false}} />
-              <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />   
-              <Stack.Screen name = "(chat)" options = {{ headerShown: false }} />     
-          </Stack>
+        <Stack>
+            <Stack.Screen name = "index" options = {{ headerShown: false}} />
+            <Stack.Screen name = "(auth)" options = {{ headerShown: false}} /> 
+            <Stack.Screen name = "(tabs)" options = {{ headerShown: false}} />
+            <Stack.Screen name = "(configuration)" options = {{ headerShown: false}} />  
+            <Stack.Screen name = "(othertabs)" options = {{ headerShown: false}} />
+            <Stack.Screen name = "search/[query]" options = {{ headerShown: false}} />        
+        </Stack>
       </UserProvider>
     )
 }

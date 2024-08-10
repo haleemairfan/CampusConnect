@@ -4,10 +4,9 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { useUser } from '@/components/UserContext';
 import { Redirect, router } from 'expo-router';
-import IPaddress from '@/IPaddress';
-
 
 import EmptyStateHome from '@/components/EmptyStateHome';
+import IPaddress from '@/IPaddress'
 
 const BlockedAccounts = () => {
   const { userId } = useUser();
@@ -47,17 +46,18 @@ const BlockedAccounts = () => {
   async function removeBlockedAccount(blockedUserId) {
     setIsUnblocking(true);
     try {
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/removeBlockedAccount/${blockedUserId}/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/removeBlockedAccount/${blockedUserId}/${userId.user_uuid}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json'
         },
       });
 
-      const data = await results.json();
-
-      if (!results.ok) {
-        throw new Error(data.message || 'Failed to unblock account');
+      if (results.status !== 204) {
+        const data = await results.json();
+        if (!results.ok) {
+          throw new Error(data.message || 'Failed to unblock account');
+        }
       }
 
       Alert.alert('Success', 'Account unblocked successfully.',

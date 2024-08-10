@@ -1,182 +1,210 @@
-import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Modal from 'react-native-modal';
+import { useAppContext } from '../(chat)/context';
 import socket from '../(chat)/chatClient';
-import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
 
 import ImageButton from '../../components/ImageButton';
 import EmptyStateMessages from '@/components/EmptyStateMessages';
 import SearchInput from '@/components/SearchInput';
 import { icons } from '../../constants';
+import IPaddress from '@/IPaddress'
 
 type Conversation = {
-  id: string;
-  sender: string;
-  recipient: string;
-};
+    id: string;
+    sender: string;
+    recipient: string;
+}
 
 const Messages = () => {
-  const { userId } = useUser();
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [recipient, setRecipient] = useState('');
-  const [sender, setSender] = useState('');
-  const [isValidUsername, setIsValidUsername] = useState(false);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+    const { getGlobalUserId } = useAppContext();
+    const id = getGlobalUserId();
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [recipient, setRecipient] = useState('');
+    const [sender, setSender] = useState('');
+    const [isValidUsername, setIsValidUsername] = useState(false);
+    const [conversations, setConversations] = useState<Conversation[]>([]); 
 
-  useEffect(() => {
-    setSender(userId.username);
-  }, [userId]);
+    const handleCreateNewChat = () => {
+        setModalVisible(true);
+    };
 
-  useEffect(() => {
-    async function fetchAllConversations() {
-      if (!sender) return;
+    useEffect(() => {
+        async function fetchUserData() {
+            try {
+                const userData = await fetch(`http://${IPaddress}:3000/api/v1/getUserData`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },  
+                    body: JSON.stringify({ id })
+                });
 
-      try {
-        const response = await fetch(`http://${IPaddress}:3000/api/v1/fetchAllConversations`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ sender }),
-        });
+                const data = await userData.json();
 
-        const data = await response.json();
+                if (!userData.ok) {
+                    throw new Error(data.message);
+                }
 
-        if (!response.ok) {
-          throw new Error(data.message);
+                setSender(data.data.username);
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+                Alert.alert('Error', 'Failed to load user data');        
+            }
         }
 
-        setConversations(data.data);
-      } catch (error) {
-        console.error('Failed to fetch conversations:', error);
-        Alert.alert('Error', 'Failed to load conversations');
-      }
-    }
+        fetchUserData();
+    }, [id]);
 
-    fetchAllConversations();
-  }, [sender]);
+    useEffect(() => {
+        async function fetchAllConversations() {
+            if (!sender) return;
 
-  const handleCreateNewChat = () => {
-    setModalVisible(true);
-  };
+            console.log(sender); 
+            try {
+                const response = await fetch(`http://${IPaddress}:3000/api/v1/fetchAllConversations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sender })
+                });
 
-  const validateUsername = async () => {
-    try {
-      const response = await fetch(`http://${IPaddress}:3000/api/v1/validateUsername`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipient }),
-      });
+                const data = await response.json();
 
-      const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message);
+                }
 
-      if (data.data.isValid) {
-        setIsValidUsername(true);
-      } else {
-        setIsValidUsername(false);
-        Alert.alert('Error', 'Invalid username. Please try again.');
-      }
-    } catch (error) {
-      console.error('Username validation error:', error);
-      Alert.alert('Error', 'Failed to validate username. Please try again.');
-    }
-  };
+                setConversations(data.data); 
+            } catch (error) {
+                console.error('Failed to fetch conversations:', error);
+                Alert.alert('Error', 'Failed to load conversations'); 
+            }
+        }
 
-  const createChat = async () => {
-    try {
-      const response = await fetch(`http://${IPaddress}:3000/api/v1/conversations`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sender, recipient }),
-      });
+        fetchAllConversations();
+    }, [sender]); 
 
-      const data = await response.json();
-
-      Alert.alert('Chat Created', `Chat with ${recipient} has been created.`);
-      setModalVisible(false);
-      setRecipient('');
-      setIsValidUsername(false);
-    } catch (error) {
-      console.error('Chat creation error:', error);
-      Alert.alert('Error', 'Failed to create chat. Please try again.');
-    }
-  };
-
-  useEffect(() => {
-    socket.on('newConversation', (conversation) => {
-      setConversations((prevConversations) => [...prevConversations, conversation]);
-    });
-
-    return () => {
-      socket.off('newConversation');
+    const validateUsername = async () => {
+        try {
+            const response = await fetch(`http://${IPaddress}:3000/api/v1/validateUsername`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recipient }),
+            });
+            const data = await response.json();
+            if (data.data.isValid) {
+                setIsValidUsername(true);
+            } else {
+                setIsValidUsername(false);
+                Alert.alert('Error', 'Invalid username. Please try again.');
+            }
+        } catch (error) {
+            console.error('Username validation error:', error);
+            Alert.alert('Error', 'Failed to validate username. Please try again.');
+        }
     };
-  }, []);
 
-  const renderConversationItem = ({ item }) => {
-    const conversationTitle = item.recipient === sender ? item.sender : item.recipient;
-    return (
-      <TouchableOpacity onPress={() => router.push({ pathname: './chat', params: { sender, recipient: conversationTitle, id: item.id } })}>
-        <View className="p-4 border border-secondary bg-primary rounded-lg m-2 shadow-md">
-          <Text className="text-lg font-bold text-white">{conversationTitle}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+    const createChat = async () => {
+        try {
+            const response = await fetch(`http://${IPaddress}:3000/api/v1/conversations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ sender, recipient }),
+            });
+            const data = await response.json();
 
-  return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <View className="my-6 px-4 space-y-6">
-        <View className="flex-row items-center justify-between mb-6">
-          <View className="flex-row items-center">
-            <ImageButton
-              imageSource={icons.back_icon}
-              handlePress={() => router.push('/home')}
-              imageContainerStyles="w-[40px] h-[25px]"
-            />
-            <Text className="text-white font-bold ml-5" style={{ fontSize: 20 }}>
-              Messages
-            </Text>
-          </View>
-          <TouchableOpacity onPress={handleCreateNewChat}>
-            <Text className="text-white" style={{ fontSize: 30 }}>+</Text>
-          </TouchableOpacity>
-        </View>
-        <SearchInput placeholder="Search" />
-      </View>
-      <FlatList
-        data={conversations}
-        renderItem={renderConversationItem}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={() => <EmptyStateMessages title="No messages" />}
-        contentContainerStyle={{ flexGrow: 1 }}
-      />
-      <Modal isVisible={isModalVisible} onBackdropPress={() => setModalVisible(false)}>
-        <View className="bg-white p-6 rounded-md">
-          <Text className="text-xl font-bold mb-4">Create New Chat</Text>
-          <TextInput
-            className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4"
-            placeholder="Enter username"
-            placeholderTextColor="#7b7b8b"
-            value={recipient}
-            onChangeText={setRecipient}
-            onBlur={validateUsername}
-          />
-          {isValidUsername && (
-            <TouchableOpacity className="bg-secondary px-4 py-2 rounded-md" onPress={createChat}>
-              <Text className="text-white text-lg font-bold">Create Chat</Text>
+            Alert.alert('Chat Created', `Chat with ${recipient} has been created.`);
+            setModalVisible(false);
+            setRecipient('');
+            setIsValidUsername(false);
+        } catch (error) {
+            console.error('Chat creation error:', error);
+            Alert.alert('Error', 'Failed to create chat. Please try again.');
+        }
+    };
+
+    useEffect(() => {
+        socket.on('newConversation', (conversation) => {
+            setConversations((prevConversations) => [...prevConversations, conversation]);
+        });
+
+        return () => {
+            socket.off('newConversation');
+        };
+    }, []);
+
+    const renderConversationItem = ({ item }) => {
+        const conversationTitle = item.recipient === sender ? item.sender : item.recipient;
+        return (
+            <TouchableOpacity onPress={() => router.push({ pathname: "./chat", params: { sender: sender, recipient: conversationTitle, id: item.id }})}>
+                <View className="p-4 border border-secondary bg-primary rounded-lg m-2 shadow-md">
+                    <Text className="text-lg font-bold text-white">
+                        {conversationTitle}
+                    </Text>
+                </View>
             </TouchableOpacity>
-          )}
-        </View>
-      </Modal>
-    </SafeAreaView>
-  );
+        );
+    };
+
+    return (
+        <SafeAreaView className='flex-1 bg-primary'>
+            <View className="my-6 px-4 space-y-6">
+                <View className="flex-row items-center justify-between mb-6">
+                    <View className="flex-row items-center">
+                        <ImageButton
+                            imageSource={icons.back_icon}
+                            handlePress={() => router.push('/home')}
+                            imageContainerStyles="w-[40px] h-[25px]"
+                        />
+                        <Text className="text-white font-bold ml-5" style={{ fontSize: 20 }}>
+                            Messages
+                        </Text>
+                    </View>
+                    <TouchableOpacity onPress={handleCreateNewChat}>
+                        <Text className="text-white" style={{ fontSize: 30 }}>+</Text>
+                    </TouchableOpacity>
+                </View>
+                <SearchInput placeholder="Search" />
+            </View>
+            <FlatList
+                data={conversations} 
+                renderItem={renderConversationItem} 
+                keyExtractor={(item) => item.id} 
+                ListEmptyComponent={() => (
+                    <EmptyStateMessages
+                        title="No messages"
+                    />
+                )}
+                contentContainerStyle={{ flexGrow: 1 }} // Ensures the list takes up the available space
+            />
+            <Modal isVisible={isModalVisible} onBackdropPress={() => setModalVisible(false)}>
+                <View className="bg-white p-6 rounded-md">
+                    <Text className="text-xl font-bold mb-4">Create New Chat</Text>
+                    <TextInput
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md mb-4"
+                        placeholder="Enter username"
+                        placeholderTextColor="#7b7b8b"
+                        value={recipient}
+                        onChangeText={setRecipient}
+                        onBlur={validateUsername}
+                    />
+                    {isValidUsername && (
+                        <TouchableOpacity className="bg-secondary px-4 py-2 rounded-md" onPress={createChat}>
+                            <Text className="text-white text-lg font-bold">Create Chat</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </Modal>
+        </SafeAreaView>
+    );
 };
 
 export default Messages;

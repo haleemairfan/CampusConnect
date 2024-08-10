@@ -16,6 +16,9 @@ import bookmark_icon from "../assets/images/bookmark_icon.png"
 import new_like_icon from "../assets/images/new_like_icon.png"
 import new_bookmark_icon from "../assets/images/filled_bookmark_icon.png"
 import modify_post_icon from "../assets/images/modify_post_icon.png"
+import comment_icon from "../assets/images/comment_icon.png"
+import dislike_icon from "../assets/images/dislike_icon.png"
+import new_dislike_icon from "../assets/images/new_dislike_icon.png"
 
 export default {
     home_icon,
@@ -35,4 +38,7 @@ export default {
     new_like_icon,
     new_bookmark_icon,
     modify_post_icon,
+    comment_icon,
+    dislike_icon,
+    new_dislike_icon,
 };

@@ -7,6 +7,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { router } from 'expo-router';
 import { useUser } from '@/components/UserContext';
 
+import IPaddress from '@/IPaddress'
+
 const interests = [
   'Traveling', 'Reading', 'Music', 'Sports', 'Cooking', 
   'Fitness', 'Movies', 'Photography', 'Dancing', 'Writing', 
@@ -48,7 +50,7 @@ export default function SelectInterests() {
   async function updateConfigurations() {
     setIsLoading(true)
       try {
-      const results = await fetch(`http://172.31.17.153:3000/api/v1/updateConfig/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/updateConfig/${userId.user_uuid}`, {
           method: 'PUT',
           headers: {
           'Content-Type': 'application/json'
@@ -66,6 +68,7 @@ export default function SelectInterests() {
       if (!results.ok) {
           throw new Error(data.message);
       }
+      Alert.alert('Success!', 'Interests updated successfully!')
       router.push({ pathname: '/settings' })
       } catch (error) {
       console.error('Invalid configurations selected.', error);

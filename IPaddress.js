@@ -1,3 +1,3 @@
-const IPaddress = "172.31.17.153";
+const IPaddress = "172.31.42.194";
 
 export default IPaddress;

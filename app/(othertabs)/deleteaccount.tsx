@@ -5,7 +5,8 @@ import { Link, router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
+
+import IPaddress from '@/IPaddress'
 
 
 export default function deletYourAccount() {
@@ -14,20 +15,22 @@ export default function deletYourAccount() {
     const { userId } = useUser();
     const userUuid = userId.user_uuid
 
-    async function deleteAccount(userUuid: string) {
+    async function deleteAccount(userUuid) {
         try {
-            const results = await fetch(`http://192.168.1.98:3000/api/v1/deleteAccount/${userUuid}`, {
+            const results = await fetch(`http://${IPaddress}:3000/api/v1/deleteAccount/${userUuid}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
                 },
             });
     
-            const data = await results.json();
-    
-            if (!results.ok) {
-                throw new Error(data.message || 'Failed to delete post');
-            } 
+            if (results.status !== 204) {
+                const data = await results.json();
+                if (!results.ok) {
+                    throw new Error(data.message || 'Failed to delete account');
+                }
+            }
+
         } catch (error) {
             console.error('Failed to delete user information', error);
             Alert.alert('Error', 'Failed to delete user information. Please try again later.');

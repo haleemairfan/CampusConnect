@@ -5,8 +5,7 @@ import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { router } from 'expo-router';
 import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
-
+import IPaddress from '@/IPaddress'
 
 const CommentDropdownMenu = ({ commentUserId, currentUserId, postUuid, commentUuid, commentBody }) => {
   const [showDropdown, setShowDropdown] = useState(false); 
@@ -72,7 +71,7 @@ const CommentDropdownMenu = ({ commentUserId, currentUserId, postUuid, commentUu
 
   async function blockComment({currentUserId, postUuid, commentUuid}) {
     try {
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/blockComment/${currentUserId}/${postUuid}/${commentUuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/blockComment/${currentUserId}/${postUuid}/${commentUuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -119,7 +118,7 @@ const CommentDropdownMenu = ({ commentUserId, currentUserId, postUuid, commentUu
 
   async function blockUser({currentUserId, commentUserId}) {
     try {
-      const results = await fetch(`http://192.168.1.98:3000/api/v1/blockUser/${currentUserId}/${commentUserId}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/blockUser/${currentUserId}/${commentUserId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

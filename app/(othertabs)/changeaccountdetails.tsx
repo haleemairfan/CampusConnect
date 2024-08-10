@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
-import IPaddress from '@/IPaddress';
+import IPaddress from '@/IPaddress'
 
 
 export default function changeAccountDetails() {
@@ -25,25 +25,26 @@ export default function changeAccountDetails() {
 
   async function getAccountDetails() {
     try {
-        const results = await fetch(`http://${IPaddress}:3000/api/v1/getUserData/${userId.user_uuid}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/getAccountDetails/${userId.user_uuid}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
             },  
         })
         const data = await results.json();
+        console.log(data)
 
-        setUsername(data.data.posts[0].username)
-        setEmail(data.data.posts[0].email)
-        setDateOfBirth(data.data.posts[0].date_of_birth)
+        setUsername(data.data.username)
+        setEmail(data.data.email)
+        setDateOfBirth(data.data.date_of_birth)
 
         if (!results.ok) {
             throw new Error(data.message);
         } 
 
     } catch (error) {
-        console.error('Unable to get configuration details', error);
-        Alert.alert('Error', 'Failed to get configuration details. Please try again later.');
+        console.error('Unable to get account details', error);
+        Alert.alert('Error', 'Failed to get account details. Please try again later.');
     } 
 }
 

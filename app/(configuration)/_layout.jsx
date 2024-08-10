@@ -30,6 +30,30 @@ const ConfigLayout = () => {
                     headerShown: false
                 }}
             />
+            <Stack.Screen
+                name="updateinterests"
+                options={{
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen
+                name="updatemajor"
+                options={{
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen
+                name="updateuniversity"
+                options={{
+                    headerShown: false
+                }}
+            />
+            <Stack.Screen
+                name="updateyearofstudy"
+                options={{
+                    headerShown: false
+                }}
+            />
         </Stack>
 
         <StatusBar backgroundColor="#161622" style="light" />

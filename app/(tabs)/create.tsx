@@ -29,7 +29,7 @@ const create = () => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://192.168.50.176:3000/api/v1/createPost/${userId.user_uuid}`, {
+      const results = await fetch(`http://172.31.42.194:3000/api/v1/createPost/${userId.user_uuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -50,12 +50,14 @@ const create = () => {
         [{ text: 'Continue', onPress: () => router.push('/home')}]);
         setTitle('');
         setBody('');
+        setTags('');
     } catch (error) {
       console.error('Sign up error:', error);
       Alert.alert('Error', 'Failed to create post.',
         [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
         setTitle('');
         setBody('');
+        setTags('');
       } finally {
         setIsLoading(false);
       }

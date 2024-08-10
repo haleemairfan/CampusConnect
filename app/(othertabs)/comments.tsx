@@ -13,8 +13,7 @@ import { icons } from '../../constants'
 import ImageButton from '@/components/ImageButton'
 import { useUser } from '@/components/UserContext';
 import CommentDropdownMenu from '@/components/CommentDropDownMenu';
-import IPaddress from '@/IPaddress';
-
+import IPaddress from '@/IPaddress'
 
 interface Post {
     post_uuid: string;

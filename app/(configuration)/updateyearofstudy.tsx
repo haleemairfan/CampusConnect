@@ -39,36 +39,6 @@ export default function SelectYear() {
     Keyboard.dismiss();
   };
 
-  async function insertYear() {
-    setIsLoading(true)
-      try {
-      const results = await fetch("http://192.168.1.98:3000/api/v1/insertYear", {
-          method: 'POST',
-          headers: {
-          'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-          id,
-          selectedYear,
-          }),
-      });
-      
-      const data = await results.json();
-
-      if (!results.ok) {
-          throw new Error(data.message);
-      }
-      router.push({ pathname: './interests', params: { id } })
-      } catch (error) {
-      console.error('Invalid year of study selected:', error);
-      Alert.alert('Error', 'Invalid Year of Study Selected',
-          [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
-
-      } finally {
-        setIsLoading(false)
-      }
-  }
-
   return (
     <TouchableWithoutFeedback onPress={handleDismissKeyboard}>
       <ThemedView style={styles.container} lightColor="#F6F0ED" darkColor="#161622">

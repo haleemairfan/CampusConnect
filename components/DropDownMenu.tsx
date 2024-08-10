@@ -4,10 +4,10 @@ import { icons } from '../constants';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { router } from 'expo-router';
-import IPaddress from '@/IPaddress';
+import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress'
 
-
-const DropdownMenu = ({ postUserId, currentUserId, postUuid, postTitle, postBody }) => {
+const DropdownMenu = ({ postUserId, currentUserId, postUuid, postTitle, postBody, postTags }) => {
   const [showDropdown, setShowDropdown] = useState(false); 
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
@@ -18,15 +18,15 @@ const DropdownMenu = ({ postUserId, currentUserId, postUuid, postTitle, postBody
 
   // Function to handle editing a post
   const handleEditPost = () => {
-    router.push({ pathname: '/editing', params: {postTitle, postBody, postUuid} });
+    router.push({ pathname: '/editing', params: {postTitle, postBody, postUuid, postTags} });
 
     setShowDropdown(false); // Close dropdown after action
   };
 
   // Async Function to Delete a Post
-  async function deletePost(postUuidToDelete) {
+  async function deletePost(postUuid) {
     try {
-        const results = await fetch(`http://${IPaddress}:3000/api/v1/deletePost/${postUuidToDelete}`, {
+        const results = await fetch(`http://${IPaddress}:3000/api/v1/deletePost/${postUuid}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -69,16 +69,98 @@ const DropdownMenu = ({ postUserId, currentUserId, postUuid, postTitle, postBody
     );
   };
 
+  async function blockPost({currentUserId, postUuid}) {
+    try {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/blockPost/${currentUserId}/${postUuid}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      const data = await results.json();
+
+      if (!results.ok) {
+        throw new Error(data.message);
+      }
+
+      Alert.alert('Success', 'Post blocked',);
+    } catch (error) {
+      console.error('Sign up error:', error);
+      Alert.alert('Error', 'Failed to block post.',
+        [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
+      }
+    };
+
   // Function to handle blocking a post
-  const handleBlockPost = () => {
-    console.log('Block post');
-    setShowDropdown(false); // Close dropdown after action
+  const handleBlockPost = async () => {
+    Alert.alert(
+        'Block Post',
+        'Are you sure you want to block this post?',
+        [
+            {
+                text: `No, don't block it`,
+                onPress: () => {
+                    setShowDropdown(false);
+                },
+                style: 'cancel',
+            },
+            {
+                text: `Yes, I'm sure`,
+                onPress: async () => {
+                    await blockPost({currentUserId, postUuid});
+                    setShowDropdown(false);
+                },
+            },
+        ],
+        { cancelable: false }
+    );
   };
 
+  async function blockUser({currentUserId, postUserId}) {
+    try {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/blockUser/${currentUserId}/${postUserId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      });
+      const data = await results.json();
+
+      if (!results.ok) {
+        throw new Error(data.message);
+      }
+
+      Alert.alert('Success', 'User blocked',);
+    } catch (error) {
+      console.error('Sign up error:', error);
+      Alert.alert('Error', 'Failed to block user.',
+        [{ text: 'Please try again', onPress: () => console.log('Alert closed') }]);
+      }
+    };
+
   // Function to handle blocking a user
-  const handleBlockUser = () => {
-    console.log('Block user');
-    setShowDropdown(false); // Close dropdown after action
+  const handleBlockUser = async () => {
+    Alert.alert(
+        'Block User',
+        'Are you sure you want to block this user?',
+        [
+            {
+                text: `No, don't block them`,
+                onPress: () => {
+                    setShowDropdown(false);
+                },
+                style: 'cancel',
+            },
+            {
+                text: `Yes, I'm sure`,
+                onPress: async () => {
+                    await blockUser({currentUserId, postUserId});
+                    setShowDropdown(false);
+                },
+            },
+        ],
+        { cancelable: false }
+    );
   };
 
   const dropdownOptions = postUserId === currentUserId

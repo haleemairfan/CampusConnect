@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, Image, RefreshControl, Alert, StyleSheet, Animated, Easing, TouchableOpacity, Touchable } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
@@ -8,8 +10,7 @@ import { Redirect, router } from 'expo-router'
 import EmptyStateHome from '@/components/EmptyStateHome';
 import DropDownMenu from '@/components/DropDownMenu';
 import { icons } from '../../constants';
-import IPaddress from '@/IPaddress';
-
+import IPaddress from '@/IPaddress'
 
 interface Post {
   post_uuid: string;
@@ -64,7 +65,7 @@ const Popular = () => {
     } catch (error) {
         console.error('Unable to get posts', error);
         Alert.alert('Error', 'Failed to get posts. Please try again later.');
-
+  
     } finally {
         setIsLoading(false)
     }
@@ -100,7 +101,7 @@ const updatePostCount = async (postId: string, likeCount: number, bookmarkCount:
     } catch (error) {
         console.error('Unable to update post count', error);
         Alert.alert('Error', 'Failed to update post count. Please try again later.');
-
+  
     }
 }
 
@@ -249,7 +250,7 @@ let tags = item.tags
       .split(',') // Split the string by commas
       .map((tag) => tag.replace(/"/g, '').trim()) // Remove any double quotes and trim whitespace
   : [];
-
+  
   let userUuid = item.user_uuid
   let username = item.users.username
 
@@ -370,7 +371,7 @@ return (
                       resizeMode = 'contain'
                       style = {[styles.icon, {transform: [{ scale: item.scaleValue }] }]} />
               </TouchableOpacity>
-
+              
               <ThemedText
               style = {styles.postCount}
               lightColor = '#2A2B2E'
@@ -521,7 +522,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     marginBottom: 25,
     },
-
+        
     flairText: {
     fontSize: 11,
     fontWeight: 'bold',
@@ -537,7 +538,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
     marginTop: 20,
     },
-
+        
     tagText: {
     fontSize: 12,
     color: '#D0CECE',
@@ -548,5 +549,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
 })
-
+  
 
