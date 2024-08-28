@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useAppContext } from './context';
 import { icons } from '../../constants';
 import ImageButton from '../../components/ImageButton';
 import socket from './chatClient';
@@ -18,8 +17,6 @@ type Message = {
 
 const ChatScreen = () => {
     const { sender, recipient, id } = useLocalSearchParams(); 
-    const { getGlobalUserId } = useAppContext();
-    const userID = getGlobalUserId(); 
     const [messages, setMessages] = useState<Message[]>([]); 
     const [newMessage, setNewMessage] = useState('');
     const flatListRef = useRef<FlatList>(null);

@@ -58,6 +58,7 @@ server.listen(port, () => {
     console.log(`Server is up and listening on port ${port}`);
 });
 
+app.use(express.json());
 
 //// ACCOUNT FUNCTIONS
 // 1. Account Creation
@@ -1934,9 +1935,8 @@ const calculateSimilarity = async (userOneUUID, userTwoUUID) => {
     return commonInteractions.length / totalInteractions;
 }
 
-
 app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
-    const { user_uuid, limit, offset } = req.body;
+    const { user_uuid, limit, offset, alreadyFetchedPostUUIDs = [] } = req.body;
 
     if (!user_uuid) {
         return res.status(400).json({
@@ -1999,7 +1999,7 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
         userScores.sort((a, b) => b.score - a.score);
 
         const userUuids = userScores.map(user => user.user_uuid);
-        const { data: posts, error: postsError } = await supabase
+        let queryPosts = supabase
             .from('posts')
             .select(`
                 *,
@@ -2009,8 +2009,11 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
                 )
             `)
             .in('user_uuid', userUuids)
+            .not('post_uuid', 'in', `(${alreadyFetchedPostUUIDs.join(',')})`) // Exclude already fetched posts
             .order('post_date', { ascending: false })
             .range(offset, offset + limit - 1);
+
+        const { data: posts, error: postsError } = await queryPosts;
 
         if (postsError) {
             throw postsError;
@@ -2018,6 +2021,7 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
 
         let fetchedPosts = posts;
 
+        // If fetched posts are less than the limit and no posts are left in the database, stop fetching more.
         if (fetchedPosts.length < limit) {
             const remainingLimit = limit - fetchedPosts.length;
             const { data: randomPosts, error: randomPostsError } = await supabase
@@ -2030,6 +2034,7 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
                     )
                 `)
                 .not('user_uuid', 'in', `(${userUuids.join(',')})`)
+                .not('post_uuid', 'in', `(${alreadyFetchedPostUUIDs.join(',')})`) // Exclude already fetched posts
                 .order('post_date', { ascending: false })
                 .range(0, remainingLimit - 1);
 
@@ -2043,7 +2048,8 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
         return res.status(200).json({
             status: "success",
             data: {
-                posts: fetchedPosts
+                posts: fetchedPosts,
+                hasMore: fetchedPosts.length === limit, // Indicate whether more posts might be available
             }
         });
     } catch (err) {
@@ -2054,6 +2060,7 @@ app.post("/api/v1/memoryBasedCollaborativeFiltering", async (req, res) => {
         });
     }
 });
+
 
 app.post("/api/v1/recentPosts", async (req, res) => {
     const { user_uuid } = req.query;

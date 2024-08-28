@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Modal from 'react-native-modal';
-import { useAppContext } from '../(chat)/context';
 import socket from '../(chat)/chatClient';
+import { useUser } from '@/components/UserContext';
+
 
 import ImageButton from '../../components/ImageButton';
 import EmptyStateMessages from '@/components/EmptyStateMessages';
@@ -19,8 +20,7 @@ type Conversation = {
 }
 
 const Messages = () => {
-    const { getGlobalUserId } = useAppContext();
-    const id = getGlobalUserId();
+    const { userId  } = useUser();
     const [isModalVisible, setModalVisible] = useState(false);
     const [recipient, setRecipient] = useState('');
     const [sender, setSender] = useState('');
@@ -32,31 +32,8 @@ const Messages = () => {
     };
 
     useEffect(() => {
-        async function fetchUserData() {
-            try {
-                const userData = await fetch(`http://${IPaddress}:3000/api/v1/getUserData`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },  
-                    body: JSON.stringify({ id })
-                });
-
-                const data = await userData.json();
-
-                if (!userData.ok) {
-                    throw new Error(data.message);
-                }
-
-                setSender(data.data.username);
-            } catch (error) {
-                console.error('Failed to fetch user data:', error);
-                Alert.alert('Error', 'Failed to load user data');        
-            }
-        }
-
-        fetchUserData();
-    }, [id]);
+        setSender(userId.username);
+    });
 
     useEffect(() => {
         async function fetchAllConversations() {

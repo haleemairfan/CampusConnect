@@ -8,7 +8,6 @@
       "./assets/images/favicon.png",
       "./assets/fonts/Sevillana-Regular.ttf"
     ],
-  
     "name": "CampusConnect",
     "slug": "CampusConnect",
     "version": "1.0.0",
@@ -40,13 +39,28 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Inter-VariableFont_slnt,wght.ttf"]
+          "fonts": [
+            "./assets/fonts/Inter-VariableFont_slnt,wght.ttf"
+          ]
         }
       ]
     ],
-    
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "32773eb1-92cf-4e39-a56c-df84193f5a07"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/32773eb1-92cf-4e39-a56c-df84193f5a07"
     }
   }
 }

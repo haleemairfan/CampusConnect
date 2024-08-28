@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
 
 import IPaddress from '@/IPaddress'
+import socket from '../(chat)/chatClient';
 
 export default function login() {
 
@@ -40,6 +41,23 @@ export default function login() {
             } else {
                 const id = data.data;
                 setUserId(id);
+
+                socket.auth = { username: id.username };
+                
+                socket.connect();
+
+                socket.on('connect', () => {
+                    console.log('Connected to the server as:', id.username);
+                });
+
+                socket.on('connect_error', (err) => {
+                    console.log('Connection error:', err);
+                });
+
+                socket.on('error', (error) => {
+                    console.error('Socket error:', error);
+                });
+
                 router.push( "/home" );
                 setIdentification('');
                 setPassword('');

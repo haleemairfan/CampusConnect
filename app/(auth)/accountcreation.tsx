@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useUser } from '@/components/UserContext';
+import socket from '../(chat)/chatClient';
 
 import IPaddress from '@/IPaddress'
 
@@ -59,6 +60,23 @@ export default function AccountCreation() {
       } else {
         const id = data.data;
         setUserId(id)
+        socket.auth = { username: id.username };
+                
+        socket.connect();
+
+        socket.on('connect', () => {
+            console.log('Connected to the server as:', id.username);
+        });
+
+        socket.on('connect_error', (err) => {
+            console.log('Connection error:', err);
+        });
+
+        socket.on('error', (error) => {
+            console.error('Socket error:', error);
+        });
+
+
         Alert.alert('Success', 'Account created successfully',
           [{ text: 'Continue', onPress: () => router.push('/university')}]);
         setUsername('');

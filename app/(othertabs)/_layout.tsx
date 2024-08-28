@@ -9,12 +9,6 @@ const otherTabsLayout = () => {
     <>
         <Stack>
         <Stack.Screen
-            name="messages"
-            options={{
-                headerShown: false
-            }}
-        />
-        <Stack.Screen
             name="editing"
             options={{
                 headerShown: false

@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from 'react-native';
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress';
 import Posts from '../(othertabs)/profileposts';
 import Bookmarks from '../(othertabs)/profilebookmarks';
 
@@ -37,7 +38,7 @@ export default function ProfilePage() {
     async function getUserConfig() {
       setIsLoading(true)
       try {
-          const results = await fetch(`http://172.31.42.194:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
+          const results = await fetch(`http://${IPaddress}:3000/api/v1/getUserConfig/${userId.user_uuid}`, {
               method: 'GET',
               headers: {
                   'Content-Type': 'application/json'
@@ -108,7 +109,7 @@ const onRefresh = async () => {
             });
   
             // Upload the image to your backend
-            const uploadResponse = await fetch(`http://172.31.42.194:3000/api/v1/uploadImage`, {
+            const uploadResponse = await fetch(`http://${IPaddress}:3000/api/v1/uploadImage`, {
               method: 'POST',
               body: formData,
               headers: {
@@ -126,7 +127,7 @@ const onRefresh = async () => {
             const imageUrl = uploadData.data.imageUrl;
   
             // Update the profile image URL in the database
-            const updateResponse = await fetch(`http://172.31.42.194:3000/api/v1/updateProfileImage/${userId.user_uuid}`, {
+            const updateResponse = await fetch(`http://${IPaddress}:3000/api/v1/updateProfileImage/${userId.user_uuid}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

@@ -10,6 +10,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 
 import { useUser } from '@/components/UserContext';
+import IPaddress from '@/IPaddress'
 
 const create = () => {
   const { userId } = useUser();
@@ -29,7 +30,7 @@ const create = () => {
     setIsLoading(true)
     try {
       //replace with your machine IP address
-      const results = await fetch(`http://172.31.42.194:3000/api/v1/createPost/${userId.user_uuid}`, {
+      const results = await fetch(`http://${IPaddress}:3000/api/v1/createPost/${userId.user_uuid}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
