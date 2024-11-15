@@ -1,3 +1,4 @@
+For a more detailed README: [https://drive.google.com/file/d/1b_bivXpFJ3m1FT19_V0FQCCxqDCeCqX-/view?usp=sharing](url)
 # **Campus Connect**
 
 
