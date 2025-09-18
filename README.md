@@ -1,4 +1,4 @@
-For a more detailed README: [https://drive.google.com/file/d/1b_bivXpFJ3m1FT19_V0FQCCxqDCeCqX-/view?usp=sharing](url)
+For a more detailed README: [https://drive.google.com/file/d/1b_bivXpFJ3m1FT19_V0FQCCxqDCeCqX-/view?usp=sharing](https://drive.google.com/drive/folders/1gLBeV-Q8roZMNjuU7U6xAcg7hkUc45Tg?usp=sharing](url)
 # **Campus Connect**
 
 
@@ -66,6 +66,6 @@ You can follow the instructions for installation in our detailed README above! P
 
 <br>
 
-**Orbital Team 6211: Halemma Irfan and Yeo Jaye Lin**
+**Orbital Team 6211: Haleema Irfan and Yeo Jaye Lin**
 <br>
 
